@@ -1,0 +1,75 @@
+name: 💡 Feature Request
+description: Suggest a new feature or improvement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea for magB? We'd love to hear it! No idea is too small or too ambitious.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the problem or pain point this feature would address.
+      placeholder: I'm always frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Your Proposed Solution
+      description: How do you envision this working? Don't worry about implementation details — just describe the experience.
+      placeholder: It would be great if magB could...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you tried any workarounds? Are there other approaches?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: What area does this relate to?
+      options:
+        - New Target/Language Support
+        - Generation Pipeline
+        - Knowledge Database
+        - Query Engine
+        - Documentation
+        - Developer Experience
+        - Community / ACE
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Who would benefit?
+      options:
+        - Everyone using magB
+        - Developers building with knowledge bases
+        - AI/LLM developers
+        - Documentation writers
+        - Project maintainers
+        - Specific domain experts
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: involvement
+    attributes:
+      label: Would you like to help?
+      description: No pressure — just let us know if you'd like to be involved!
+      options:
+        - label: I'd be willing to submit a PR for this
+        - label: I'd be happy to test this feature
+        - label: I can provide domain expertise

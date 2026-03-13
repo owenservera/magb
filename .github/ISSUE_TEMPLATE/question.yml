@@ -1,0 +1,43 @@
+name: ❓ Question / Discussion
+description: Ask a question or start a discussion about magB
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        No question is too basic! We're here to help you understand magB.
+        
+        > 💡 For general discussions, consider using [GitHub Discussions](../../../discussions) instead.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know?
+      placeholder: I'm trying to understand how...
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Any additional context that helps us understand your question.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Topic Area
+      options:
+        - Getting Started
+        - How magB Works
+        - Architecture / Design
+        - Contributing
+        - Use Cases
+        - Deployment
+        - Other
+    validations:
+      required: false
