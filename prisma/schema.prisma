@@ -1,0 +1,1112 @@
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║                     magB — Universal Blueprint Machine                      ║
+// ║                         Seed Database Schema v1.0                           ║
+// ║                                                                             ║
+// ║  Synthesized from:                                                          ║
+// ║   • Database Architecture — Opus 4.6 (Thinking)                             ║
+// ║   • Database Architecture — Opus 4.6 (Non-Thinking)                         ║
+// ║   • Proposal Schema Architecture v0                                         ║
+// ║   • Missing Elements v0 (Thinking + Non-Thinking)                           ║
+// ║   • Observability Architecture — Opus 4.6 (Thinking)                        ║
+// ║   • System Architecture — Opus 4.6                                          ║
+// ║   • Universal Blueprint Machine Concept Document                            ║
+// ║                                                                             ║
+// ║  Design Decisions:                                                          ║
+// ║   1. Separate tables per entity (not single polymorphic KnowledgeNode)      ║
+// ║   2. PostgreSQL + pgvector for unified structured/vector/graph/FTS           ║
+// ║   3. Multi-resolution content (micro/standard/exhaustive)                   ║
+// ║   4. Delta version chains (98% deduplication)                               ║
+// ║   5. Separate embeddings table (clean model swapping)                       ║
+// ║   6. Polymorphic relations (any entity → any entity)                        ║
+// ║   7. Self-describing schema (AI can introspect without docs)                ║
+// ║   8. Pre-computed token counts (context window budget planning)             ║
+// ║   9. Provenance on everything (model, confidence, timestamp)                ║
+// ║  10. Content-addressed hashing (deduplication across targets)               ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [pgvector(map: "vector"), pg_trgm]
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
+// ENUMS — Type-safe discriminators for the knowledge graph
+// ════════════════════════════════════════════════════════════════════════════════
+
+/// Classification of what a target IS (programming language, file format, etc.)
+enum TargetKind {
+  PROGRAMMING_LANGUAGE
+  MARKUP_LANGUAGE
+  QUERY_LANGUAGE
+  FILE_FORMAT
+  DATA_FORMAT
+  CONFIG_FORMAT
+  PROTOCOL
+  SHELL
+}
+
+/// Lifecycle status of a target in the database
+enum TargetStatus {
+  ACTIVE
+  DEPRECATED
+  EXPERIMENTAL
+  HISTORICAL
+}
+
+/// Progress of knowledge generation for a target
+enum GenerationStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  STALE
+}
+
+/// Lifecycle status of a specific target version
+enum VersionStatus {
+  CURRENT
+  SUPPORTED
+  END_OF_LIFE
+  PRERELEASE
+}
+
+/// Classification of what a knowledge entry represents
+enum EntryType {
+  TOPIC
+  FUNCTION
+  CLASS
+  MODULE
+  TYPE
+  OPERATOR
+  KEYWORD
+  ELEMENT
+  ATTRIBUTE
+  RULE
+  CONCEPT
+  DIRECTIVE
+  PATTERN
+  CONSTANT
+  EXCEPTION
+  PROTOCOL_ENTRY
+  STATEMENT
+  EXPRESSION
+}
+
+/// Classification of structural atoms (the building blocks)
+enum AtomType {
+  XML_ELEMENT
+  XML_ATTRIBUTE
+  BINARY_FIELD
+  JSON_KEY
+  COORDINATE_SYSTEM
+  ENUM_VALUE
+  NAMESPACE
+  PROTOCOL_FIELD
+  SYNTAX_RULE
+  GRAMMAR_PRODUCTION
+}
+
+/// Scope of composable blueprints
+enum BlueprintScope {
+  SINGLE_FEATURE
+  FEATURE_GROUP
+  FULL_MODULE
+  FULL_APPLICATION
+}
+
+/// Type of relationship between entities in the knowledge graph
+enum RelationType {
+  IMPLEMENTS // concept → entry: "Python implements iteration"
+  REQUIRES // capability → atom: "drawing rectangle requires shape element"
+  ANALOGOUS_IN // entry ↔ entry: "Python's for ≈ Rust's for...in"
+  CHILD_OF // entry → entry: "list.append is child of list"
+  COMPOSED_OF // blueprint → capabilities: "image editor composed of..."
+  EXTENDS // entry → entry: "dataclass extends class"
+  ALTERNATIVE_TO // entry ↔ entry: "list comprehension vs map()"
+  RELATED_TO // generic semantic relationship
+  DEPENDS_ON // hard dependency
+  ANTI_PATTERN_OF // "eval() is anti-pattern of safe execution"
+  EVOLVED_FROM // version history: "match evolved from if/elif chains"
+  DEPRECATES // "new_func deprecates old_func"
+  TESTED_BY // artifact link
+  DOCUMENTED_BY // cross-reference
+  SUPERSEDES // stronger version of DEPRECATES
+  VARIANT_OF // dialect/variant relationship
+}
+
+/// Complexity level for examples and capabilities
+enum ComplexityLevel {
+  MINIMAL
+  BASIC
+  MODERATE
+  ADVANCED
+  EXPERT
+}
+
+/// Result of a validation pass
+enum ValidationResult {
+  PENDING
+  PASSED
+  FAILED
+  NEEDS_REVIEW
+}
+
+/// Status of a generation run
+enum GenerationRunStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+  PAUSED
+}
+
+/// Phase within the 6-phase generation pipeline
+enum GenerationPhase {
+  DECOMPOSE
+  ENUMERATE
+  GENERATE
+  GAP_ANALYZE
+  FILL
+  VALIDATE
+}
+
+/// Resolution level for embeddings
+enum EmbeddingResolution {
+  MICRO
+  STANDARD
+  EXHAUSTIVE
+  COMBINED
+}
+
+/// Scope granularity for health measurements
+enum ScopeType {
+  ENTRY
+  TARGET
+  FAMILY
+  GLOBAL
+}
+
+/// Severity of health events
+enum HealthSeverity {
+  CRITICAL
+  WARNING
+  INFO
+}
+
+/// Type of health event detected
+enum HealthEventType {
+  VERSION_RELEASED
+  SPEC_AMENDED
+  ENTRY_DECAYED
+  GAP_DISCOVERED
+  CONTRADICTION_FOUND
+  ACCURACY_DROP
+  DEPTH_INCOMPLETE
+  ORPHAN_DETECTED
+  ANCHOR_DRIFT
+  EXTERNAL_SIGNAL
+  REGENERATION_COMPLETED
+  VALIDATION_COMPLETED
+}
+
+/// Response status for health events
+enum ResponseStatus {
+  PENDING
+  IN_PROGRESS
+  RESOLVED
+  ACCEPTED
+  DISMISSED
+}
+
+/// Decay rate classification for knowledge freshness
+enum DecayRate {
+  IMMORTAL // math, CS theory — half-life ≈ ∞
+  STABLE // language spec — half-life ≈ 5 years
+  NORMAL // typical release cycle — half-life ≈ 1.5 years
+  FAST // actively evolving — half-life ≈ 6 months
+  VOLATILE // experimental/security — half-life ≈ 2 months
+}
+
+/// Type of artifact stored in the system
+enum ArtifactType {
+  CODE_EXAMPLE
+  ALGORITHM_IMPL
+  FILE_TEMPLATE
+  BINARY_SPEC
+  SCHEMA
+  TEST_VECTOR
+  MIGRATION_GUIDE
+  BENCHMARK
+  REFERENCE_IMPL
+}
+
+/// Type of validation performed
+enum ValidationType {
+  LLM_REVIEW
+  CODE_EXECUTION
+  SCHEMA_VALIDATION
+  CROSS_REFERENCE
+  HUMAN_REVIEW
+  ANCHOR_CHECK
+  PEER_COMPARISON
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
+// LAYER 1: CORE — Universal concepts, families, targets, versions
+//
+// The foundational identity layer. ~4,350 rows at scale.
+// These tables define WHAT we're documenting and HOW things relate at the
+// highest conceptual level.
+// ════════════════════════════════════════════════════════════════════════════════
+
+/// Universal concepts that span multiple programming languages or file formats.
+/// ~300 rows. The conceptual skeleton enabling cross-target comparison.
+///
+/// Examples: "iteration", "error handling", "compression", "type coercion"
+/// These are language-agnostic ideas that get implemented differently in each target.
+model Concept {
+  id          String  @id /// Deterministic ID: "iteration.definite", "type.coercion"
+  name        String /// Human-readable: "Definite Iteration (for loops)"
+  domain      String /// Top-level domain: "control_flow", "type_system", "io"
+  parentId    String? @map("parent_id") /// Self-referential hierarchy
+  summary     String? /// 1-2 sentence overview (~50 tokens)
+  description String? /// Full conceptual explanation (~500 tokens)
+
+  /// AI-relevant fields
+  theory     String? /// Theoretical foundation (CS/math background)
+  prevalence String? /// How common: "universal" | "common" | "language_specific"
+
+  /// Cross-target information
+  notableAbsences String[] @map("notable_absences") /// Targets that DON'T have this concept
+
+  metadata Json @default("{}") /// Extensible metadata bucket
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // ── Relations ──
+  parent   Concept?  @relation("ConceptHierarchy", fields: [parentId], references: [id])
+  children Concept[] @relation("ConceptHierarchy")
+  entries  Entry[] /// All target-specific implementations of this concept
+
+  @@index([domain])
+  @@index([parentId])
+  @@map("concepts")
+}
+
+/// Language/format families enabling shared knowledge inheritance.
+/// ~50 rows. ZIP-based formats share 60% structure; C-family languages share syntax.
+///
+/// Examples: "c_family", "lisp_family", "zip_based", "xml_based"
+model Family {
+  id          String  @id /// Deterministic: "c_family", "zip_based"
+  name        String /// Human-readable: "C-Family Languages"
+  type        String /// "language_family" | "format_family" | "paradigm_family"
+  description String? /// What these targets share
+
+  /// Shared characteristics
+  sharedTraits   Json     @default("{}") @map("shared_traits") /// Common properties
+  sharedEntryIds String[] @map("shared_entry_ids") /// Entry IDs that apply to all members
+
+  metadata Json @default("{}") /// Extensible metadata
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // ── Relations ──
+  targets Target[] @relation("FamilyTargets")
+
+  @@map("families")
+}
+
+/// Specific languages, formats, or tools that we document.
+/// ~1,000 rows at scale. The primary organizational unit.
+///
+/// Examples: "python", "rust", "json", "pptx", "yaml"
+model Target {
+  id          String     @id /// Deterministic: "python", "rust", "json"
+  name        String /// Human-readable: "Python"
+  kind        TargetKind /// What type of thing this is
+  familyId    String?    @map("family_id")
+  description String? /// Brief description of the target
+
+  /// Classification traits (drives generation strategy)
+  traits         Json     @default("{}") /// {paradigms, typing, memory_model, ...}
+  distinguishing String[] /// What makes this target unique
+  similarTo      String[] @map("similar_to") /// IDs of similar targets
+
+  /// File identification
+  extensions String[] /// [".py", ".pyw", ".pyi"]
+  mediaTypes String[] @map("media_types") /// ["text/x-python"]
+  magicBytes String?  @map("magic_bytes") /// Binary signature if applicable
+
+  /// Specification
+  specUrl String? @map("spec_url") /// Official spec/docs URL
+
+  /// Status & generation progress
+  status           TargetStatus     @default(ACTIVE)
+  generationStatus GenerationStatus @default(NOT_STARTED) @map("generation_status")
+  lastGenerated    DateTime?        @map("last_generated")
+
+  /// Tier for prioritized generation (1 = highest priority)
+  tier Int @default(3) /// 1: Python/JSON, 2: Rust/YAML, 3: others
+
+  metadata Json @default("{}") /// Extensible metadata
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // ── Relations ──
+  family         Family?         @relation("FamilyTargets", fields: [familyId], references: [id])
+  versions       TargetVersion[]
+  entries        Entry[]
+  atoms          Atom[]
+  capabilities   Capability[]
+  blueprints     Blueprint[]
+  generationRuns GenerationRun[]
+
+  @@index([kind])
+  @@index([familyId])
+  @@index([status, generationStatus])
+  @@index([tier])
+  @@map("targets")
+}
+
+/// Version tracking with delta chains for efficient storage.
+/// ~3,000 rows at scale. Delta-based: Python 3.12→3.13 stores only the ~2% diff.
+///
+/// Enables "what changed in version X?" queries at near-zero cost.
+model TargetVersion {
+  id            String        @id /// Deterministic: "python_3.12", "rust_1.78"
+  targetId      String        @map("target_id")
+  versionString String        @map("version_string") /// "3.12", "1.78.0"
+  released      DateTime? /// Release date
+  status        VersionStatus @default(CURRENT)
+
+  /// Delta chain — what changed from the previous version
+  deltaFrom    String? @map("delta_from") /// Previous version ID
+  additions    Json    @default("[]") /// [{path, description}]
+  changes      Json    @default("[]") /// [{path, before, after, description}]
+  removals     Json    @default("[]") /// [{path, description, replacement}]
+  deprecations Json    @default("[]") /// [{path, reason, alternative, removal_version}]
+
+  /// References
+  specUrl      String? @map("spec_url")
+  changelogUrl String? @map("changelog_url")
+
+  /// Ordering
+  sortOrder Int @default(0) @map("sort_order") /// For chronological ordering
+
+  metadata Json @default("{}") /// Extensible metadata
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // ── Relations ──
+  target             Target          @relation(fields: [targetId], references: [id])
+  deltaFromVersion   TargetVersion?  @relation("VersionDelta", fields: [deltaFrom], references: [id])
+  deltasToThis       TargetVersion[] @relation("VersionDelta")
+  introducedEntries  Entry[]         @relation("IntroducedIn")
+  removedEntries     Entry[]         @relation("RemovedIn")
+  validFromExamples  Example[]       @relation("ValidFrom")
+  validUntilExamples Example[]       @relation("ValidUntil")
+
+  @@unique([targetId, versionString])
+  @@index([targetId])
+  @@index([deltaFrom])
+  @@map("target_versions")
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
+// LAYER 2: KNOWLEDGE — Multi-resolution entries and versioned examples
+//
+// The heart of the system. ~15,000,000 rows at scale.
+// Every piece of documented knowledge lives here, at three resolution levels
+// to enable AI context-window budget planning.
+// ════════════════════════════════════════════════════════════════════════════════
+
+/// Multi-resolution knowledge entries — the core content of the database.
+/// ~5,000,000 rows at scale. Each entry is a single documented concept for one target.
+///
+/// Three resolutions enable AI context-window budgeting:
+///   • micro (~50 tokens):    for listings, TOCs, summaries
+///   • standard (~500 tokens): for answering specific questions
+///   • exhaustive (~2000 tokens): for deep implementation details
+model Entry {
+  id        String    @id /// Content-addressed: hash(target_id + path)
+  conceptId String?   @map("concept_id") /// Link to universal concept
+  targetId  String    @map("target_id")
+  path      String /// Hierarchical: "Python/Type System/Primitives/int"
+  entryType EntryType @map("entry_type")
+
+  /// Version scoping — when was this feature available?
+  introducedIn String?  @map("introduced_in") /// TargetVersion ID
+  removedIn    String?  @map("removed_in") /// TargetVersion ID (null = still current)
+  changedIn    String[] @map("changed_in") /// TargetVersion IDs where behavior changed
+
+  /// ── Multi-resolution content ──
+  /// AI systems select resolution based on context window budget
+  contentMicro      String? @map("content_micro") /// ~50 tokens: "for loops iterate..."
+  contentStandard   String? @map("content_standard") /// ~500 tokens: full explanation
+  contentExhaustive String? @map("content_exhaustive") /// ~2000 tokens: implementation details
+
+  /// ── Structured knowledge ──
+  syntax         String? /// Formal syntax/grammar
+  parameters     Json    @default("[]") /// [{name, type, required, description, default}]
+  returnValue    String? @map("return_value") /// Return type and description
+  edgeCases      Json    @default("[]") @map("edge_cases") /// Known gotchas
+  commonMistakes Json    @default("[]") @map("common_mistakes") /// Frequent errors
+
+  /// ── Pre-computed token counts for context-window planning ──
+  tokensMicro      Int? @map("tokens_micro")
+  tokensStandard   Int? @map("tokens_standard")
+  tokensExhaustive Int? @map("tokens_exhaustive")
+
+  /// ── Provenance ──
+  generatedBy     String?   @map("generated_by") /// Model that created this
+  generatedAt     DateTime? @map("generated_at") /// When it was created
+  validatedBy     String?   @map("validated_by") /// Model that validated this
+  confidence      Float     @default(0.0) /// 0.0-1.0 validation confidence
+  contentHash     String?   @map("content_hash") /// SHA-256 for deduplication
+  validationNotes String?   @map("validation_notes") /// Last validation feedback
+
+  metadata Json @default("{}") /// Extensible metadata
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // ── Relations ──
+  concept       Concept?       @relation(fields: [conceptId], references: [id])
+  target        Target         @relation(fields: [targetId], references: [id])
+  introducedVer TargetVersion? @relation("IntroducedIn", fields: [introducedIn], references: [id])
+  removedVer    TargetVersion? @relation("RemovedIn", fields: [removedIn], references: [id])
+  examples      Example[]
+  atoms         Atom[]
+  decayLedger   DecayLedger[]
+
+  @@unique([targetId, path])
+  @@index([targetId, path])
+  @@index([conceptId])
+  @@index([targetId, entryType])
+  @@index([contentHash])
+  @@map("entries")
+}
+
+/// Version-aware code examples with expected output.
+/// ~10,000,000 rows at scale. Examples are first-class citizens, not inline blobs.
+///
+/// Each example tracks which versions it's valid for, enabling accurate code
+/// generation even when targeting older language versions.
+model Example {
+  id             String          @id @default(cuid()) /// Auto-generated
+  entryId        String          @map("entry_id")
+  title          String /// "Basic for loop", "Nested iteration"
+  code           String /// The actual code
+  language       String /// Code language for syntax highlighting
+  explanation    String? /// What this example demonstrates
+  expectedOutput String?         @map("expected_output") /// What running it produces
+  complexity     ComplexityLevel @default(BASIC)
+
+  /// Version scoping
+  validFrom  String? @map("valid_from") /// TargetVersion ID
+  validUntil String? @map("valid_until") /// TargetVersion ID
+
+  /// Cross-reference: same example used by multiple entries
+  alsoUsedBy String[] @map("also_used_by") /// Entry IDs
+
+  /// Token budget
+  tokenCount Int? @map("token_count")
+
+  metadata Json @default("{}") /// Extensible metadata
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // ── Relations ──
+  entry         Entry          @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  validFromVer  TargetVersion? @relation("ValidFrom", fields: [validFrom], references: [id])
+  validUntilVer TargetVersion? @relation("ValidUntil", fields: [validUntil], references: [id])
+
+  @@index([entryId])
+  @@index([complexity])
+  @@map("examples")
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
+// LAYER 3: IMPLEMENTATION — Atoms, algorithms, capabilities, blueprints, artifacts
+//
+// The actionable knowledge layer. ~3,060,000 rows at scale.
+// Moves from "what is X?" to "how do I BUILD with X?"
+// ════════════════════════════════════════════════════════════════════════════════
+
+/// Structural atoms — the irreducible building blocks of a format or language.
+/// ~2,000,000 rows at scale.
+///
+/// For XML formats: individual elements, attributes, namespaces
+/// For binary formats: field offsets, byte sequences
+/// For languages: syntax productions, grammar rules
+model Atom {
+  id       String   @id /// Content-addressed: hash(target_id + element_name + xpath)
+  targetId String   @map("target_id")
+  entryId  String?  @map("entry_id") /// Which entry this atom belongs to
+  atomType AtomType @map("atom_type")
+
+  /// Identity
+  filePath   String? @map("file_path") /// For multi-file formats: "word/document.xml"
+  xpath      String? /// For XML: "/w:document/w:body/w:p/w:r"
+  byteOffset Int?    @map("byte_offset") /// For binary: offset in bytes
+
+  /// Element details
+  elementName     String  @map("element_name")
+  namespaceUri    String? @map("namespace_uri")
+  namespacePrefix String? @map("namespace_prefix")
+  structure       Json    @default("{}") /// {children, attributes, constraints, nesting_rules}
+
+  /// Hierarchy
+  parentAtomId String? @map("parent_atom_id") /// Self-referential tree
+
+  /// Semantics
+  semanticMeaning   String? @map("semantic_meaning") /// Human-readable: "The paragraph element"
+  unitOfMeasure     String? @map("unit_of_measure") /// "EMU" | "half-points" | "twips"
+  conversionFormula String? @map("conversion_formula") /// "EMU / 914400 = inches"
+  exampleValue      String? @map("example_value") /// "914400" (= 1 inch in EMU)
+  exampleContext    String? @map("example_context") /// Where/how this value appears
+
+  metadata Json @default("{}") /// Extensible metadata
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // ── Relations ──
+  target     Target @relation(fields: [targetId], references: [id])
+  entry      Entry? @relation(fields: [entryId], references: [id])
+  parentAtom Atom?  @relation("AtomHierarchy", fields: [parentAtomId], references: [id])
+  children   Atom[] @relation("AtomHierarchy")
+
+  @@index([targetId])
+  @@index([parentAtomId])
+  @@index([elementName])
+  @@map("atoms")
+}
+
+/// Algorithms — computational procedures with mathematical foundations.
+/// ~50,000 rows at scale. Target-AGNOSTIC: Gaussian blur is the same algorithm
+/// regardless of whether you implement it in Python, Rust, or C.
+///
+/// Implementations are linked via the artifacts table.
+model Algorithm {
+  id       String  @id /// Deterministic: "algo.img.blur.gaussian"
+  name     String /// "Gaussian Blur"
+  category String /// "image_processing", "compression", "sorting"
+  domain   String /// "imaging", "text", "crypto", "data_structures"
+  purpose  String? /// Why you'd use this algorithm
+
+  /// Mathematical foundation
+  formula            String? /// LaTeX or plain math notation
+  formulaExplanation String? @map("formula_explanation") /// Plain-English formula description
+
+  /// Multi-resolution content (same pattern as entries)
+  summary    String? /// One-sentence: "Applies weighted average to blur pixels"
+  fullSpec   String? @map("full_spec") /// Complete specification
+  pseudocode String? /// Language-agnostic implementation
+
+  /// Parameters
+  parameters Json @default("[]") /// [{name, type, description, constraints}]
+
+  /// Complexity analysis
+  timeComplexity  String? @map("time_complexity") /// "O(n·m·k²)" or "O(n log n)"
+  spaceComplexity String? @map("space_complexity")
+
+  /// Practical details
+  optimizations      Json @default("[]") /// Known optimizations
+  algorithmEdgeCases Json @default("[]") @map("algorithm_edge_cases") /// Corner cases
+  testVectors        Json @default("[]") @map("test_vectors") /// Input/output pairs for verification
+  numericalStability Json @default("{}") @map("numerical_stability") /// Precision concerns
+
+  /// Provenance
+  confidence Float    @default(0.0)
+  references String[] /// Academic papers, spec sections
+
+  metadata Json @default("{}") /// Extensible metadata
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([category])
+  @@index([domain])
+  @@map("algorithms")
+}
+
+/// Capabilities — user-facing features with implementation specifications.
+/// ~500,000 rows at scale. Answers: "How do I DO this in target X?"
+///
+/// Each capability links atoms (what you need) to algorithms (how to process them)
+/// and provides step-by-step implementation guidance.
+model Capability {
+  id       String @id /// Content-addressed
+  targetId String @map("target_id")
+  name     String /// "Draw Rectangle Shape"
+  category String /// "shapes", "text_formatting", "file_io"
+
+  /// Dual descriptions for different audiences
+  userDescription      String?         @map("user_description") /// Non-technical
+  technicalDescription String?         @map("technical_description") /// Implementation-focused
+  complexity           ComplexityLevel @default(MODERATE)
+
+  /// Implementation guide
+  implementationSteps Json @default("[]") @map("implementation_steps")
+  /// [{order, description, atom_ids[], algorithm_ids[], code_template, validation}]
+
+  /// Pre-computed reference implementations
+  referenceImplementations Json @default("{}") @map("reference_implementations")
+  /// {python: "...", rust: "...", javascript: "..."}
+
+  /// Working example
+  minimumWorkingExample String? @map("minimum_working_example")
+
+  /// Common pitfalls
+  knownPitfalls Json @default("[]") @map("known_pitfalls")
+
+  metadata Json @default("{}") /// Extensible metadata
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // ── Relations ──
+  target Target @relation(fields: [targetId], references: [id])
+
+  @@index([targetId])
+  @@index([category])
+  @@map("capabilities")
+}
+
+/// Blueprints — composable architecture plans that combine capabilities.
+/// ~10,000 rows at scale. Answers: "Give me an architecture for building X"
+///
+/// Blueprints compose capabilities and algorithms into working system designs,
+/// from single features to full applications.
+model Blueprint {
+  id          String         @id /// Content-addressed
+  targetId    String?        @map("target_id") /// Null = target-agnostic
+  name        String /// "PPTX Presentation Builder"
+  scope       BlueprintScope /// How big is this blueprint?
+  description String?
+
+  /// Composition — what this blueprint is built from
+  capabilityIds String[] @map("capability_ids") /// Capability IDs used
+  algorithmIds  String[] @map("algorithm_ids") /// Algorithm IDs used
+
+  /// Architecture specification
+  moduleStructure        Json @default("[]") @map("module_structure") /// Module breakdown
+  classHierarchy         Json @default("[]") @map("class_hierarchy") /// Class design
+  publicApi              Json @default("[]") @map("public_api") /// Public interface
+  buildSequence          Json @default("[]") @map("build_sequence") /// Order of assembly
+  minimalImplementation  Json @default("{}") @map("minimal_implementation") /// MVP code
+  extensionPoints        Json @default("[]") @map("extension_points") /// Where to extend
+  initializationSequence Json @default("[]") @map("initialization_sequence") /// Boot order
+
+  /// Testing
+  integrationTests Json @default("[]") @map("integration_tests")
+
+  metadata Json @default("{}") /// Extensible metadata
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // ── Relations ──
+  target Target? @relation(fields: [targetId], references: [id])
+
+  @@index([targetId])
+  @@index([scope])
+  @@map("blueprints")
+}
+
+/// Artifacts — large, reusable, executable knowledge blobs.
+/// ~500,000 rows at scale. Code implementations, file templates, test vectors.
+///
+/// Small artifacts (<10KB) stored inline. Large artifacts stored by reference
+/// (S3/blob storage) with content_ref.
+model Artifact {
+  id           String       @id /// Content-addressed
+  artifactType ArtifactType @map("artifact_type")
+  name         String?
+  description  String?
+
+  /// Content (inline for small, reference for large)
+  content     String? /// Inline if <10KB
+  contentRef  String? @map("content_ref") /// S3/blob reference if large
+  contentHash String? @map("content_hash") /// SHA-256 for integrity
+  contentSize Int?    @map("content_size") /// Bytes
+  tokenCount  Int?    @map("token_count")
+
+  /// Multi-language implementations (for code artifacts)
+  implementations Json @default("{}") /// {python: {code, tested, test_ids}, rust: {...}}
+
+  /// Validation
+  testVectorIds String[] @map("test_vector_ids")
+  isTested      Boolean  @default(false) @map("is_tested")
+
+  /// Reverse references
+  referencedBy String[] @map("referenced_by") /// Entity IDs that reference this
+
+  metadata Json @default("{}") /// Extensible metadata
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([artifactType])
+  @@index([contentHash])
+  @@map("artifacts")
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
+// LAYER 4: GRAPH — Polymorphic relations connecting all entity types
+//
+// The knowledge graph backbone. ~20,000,000 rows at scale.
+// Any entity can relate to any other entity with typed, weighted, directional edges.
+// ════════════════════════════════════════════════════════════════════════════════
+
+/// Polymorphic relation edges in the knowledge graph.
+/// ~20,000,000 rows at scale.
+///
+/// Enables: dependency resolution, learning paths, translation guides,
+/// cross-target comparison, gap analysis, and emergent cross-references.
+///
+/// Source and target use string IDs + type discriminators for polymorphism
+/// since Prisma doesn't support native polymorphic FKs.
+model Relation {
+  id BigInt @id @default(autoincrement())
+
+  /// Source entity
+  sourceId   String @map("source_id") /// Entity ID
+  sourceType String @map("source_type") /// "concept"|"entry"|"atom"|"capability"|...
+
+  /// Target entity (naming avoids confusion with Target model)
+  relTargetId   String @map("rel_target_id") /// Entity ID
+  relTargetType String @map("rel_target_type") /// "concept"|"entry"|"atom"|...
+
+  /// Edge properties
+  relationType  RelationType @map("relation_type")
+  strength      Float        @default(1.0) /// 0.0 to 1.0 — how strong is this relation?
+  bidirectional Boolean      @default(false) /// Does this edge go both ways?
+  context       String? /// Why this relation exists (AI-readable)
+
+  /// Provenance
+  discoveredBy String? @map("discovered_by") /// Which phase/model discovered this
+  confidence   Float   @default(1.0) /// 0.0 to 1.0
+
+  metadata Json @default("{}") /// Extensible metadata
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([sourceId, sourceType])
+  @@index([relTargetId, relTargetType])
+  @@index([relationType])
+  @@index([sourceId, relationType])
+  @@map("relations")
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
+// LAYER 5: OPERATIONS — Generation tracking, validation, embeddings, schema metadata
+//
+// The infrastructure layer. Tracks generation campaigns, validation results,
+// vector embeddings, and self-describing schema documentation.
+// ════════════════════════════════════════════════════════════════════════════════
+
+/// Generation run tracking — every AI generation campaign is logged.
+/// Enables cost tracking, progress monitoring, and reproducibility.
+model GenerationRun {
+  id          String              @id @default(cuid())
+  targetId    String              @map("target_id")
+  startedAt   DateTime            @default(now()) @map("started_at")
+  completedAt DateTime?           @map("completed_at")
+  status      GenerationRunStatus @default(RUNNING)
+
+  /// Configuration snapshot
+  config Json @default("{}") /// Full config at time of run
+
+  /// Progress
+  currentPhase  GenerationPhase? @map("current_phase")
+  totalApiCalls Int              @default(0) @map("total_api_calls")
+  totalTokens   Int              @default(0) @map("total_tokens")
+  totalCostUsd  Float            @default(0.0) @map("total_cost_usd")
+
+  /// Results
+  nodesCreated Int  @default(0) @map("nodes_created")
+  edgesCreated Int  @default(0) @map("edges_created")
+  errors       Json @default("[]") /// [{phase, error, entry_id, timestamp}]
+
+  /// Completeness tracking
+  completeness Json @default("{}") /// {anchor_coverage, concept_coverage, ...}
+
+  metadata Json @default("{}") /// Extensible metadata
+
+  // ── Relations ──
+  target Target @relation(fields: [targetId], references: [id])
+
+  @@index([targetId])
+  @@index([status])
+  @@map("generation_runs")
+}
+
+/// Validation results for individual entities.
+/// Tracks every validation pass with model, confidence, and detailed feedback.
+model Validation {
+  id             BigInt           @id @default(autoincrement())
+  entityId       String           @map("entity_id") /// ID of the validated entity
+  entityType     String           @map("entity_type") /// "entry"|"example"|"atom"|...
+  validationType ValidationType   @map("validation_type")
+  result         ValidationResult @default(PENDING)
+  confidence     Float            @default(0.0) /// 0.0-1.0
+
+  /// Detailed feedback
+  details Json @default("{}") /// {errors, missing_info, improvements}
+
+  /// Provenance
+  validatorModel String?  @map("validator_model") /// Which model validated
+  validatedAt    DateTime @default(now()) @map("validated_at")
+
+  metadata Json @default("{}") /// Extensible metadata
+
+  @@index([entityId, entityType])
+  @@index([result])
+  @@index([validatedAt])
+  @@map("validations")
+}
+
+/// Vector embeddings stored separately from entities for clean model swapping.
+/// ~15,000,000 rows at scale.
+///
+/// Separate table enables:
+///   • Swapping embedding models without touching content tables
+///   • Multiple embedding models simultaneously
+///   • Per-resolution embeddings (micro vs standard have different semantic neighborhoods)
+model Embedding {
+  id         BigInt              @id @default(autoincrement())
+  entityId   String              @map("entity_id") /// Which entity this embeds
+  entityType String              @map("entity_type") /// "concept"|"entry"|"atom"|...
+  resolution EmbeddingResolution /// Which content resolution was embedded
+
+  /// The actual vector — stored as pgvector via raw SQL
+  /// Prisma doesn't natively support pgvector, so we use Unsupported
+  vector Unsupported("vector(1536)")? /// 1536-dim for OpenAI ada-002
+
+  /// Model tracking
+  model String @default("text-embedding-ada-002")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([entityId, entityType, resolution, model])
+  @@index([entityType])
+  @@map("embeddings")
+}
+
+/// Self-describing schema — the database explains itself to AI systems.
+/// The AI can introspect the schema without external documentation.
+///
+/// Every table and key column has an AI-readable description and usage hint.
+model SchemaMetadata {
+  tableName  String @map("table_name")
+  columnName String @default("__table__") @map("column_name") /// "__table__" = table-level
+
+  /// Documentation
+  description  String /// Human AND AI readable description
+  aiUsageHint  String? @map("ai_usage_hint") /// How an AI should use this field
+  exampleQuery String? @map("example_query") /// Example SQL for common patterns
+
+  @@id([tableName, columnName])
+  @@map("schema_metadata")
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
+// LAYER 6: OBSERVABILITY — Health tracking, events, decay monitoring
+//
+// The "immune system" of the knowledge base. Continuously monitors five
+// vital signs: Coverage, Accuracy, Freshness, Depth, Coherence.
+// ════════════════════════════════════════════════════════════════════════════════
+
+/// Time-series health measurements at every granularity level.
+/// Tracks the five vital signs (Coverage, Accuracy, Freshness, Depth, Coherence)
+/// for individual entries, targets, families, and globally.
+model HealthSnapshot {
+  id         BigInt   @id @default(autoincrement())
+  measuredAt DateTime @default(now()) @map("measured_at")
+
+  /// Scope — what are we measuring?
+  scopeType ScopeType @map("scope_type") /// entry | target | family | global
+  scopeId   String?   @map("scope_id") /// Entity ID, or null for global
+
+  /// The five vital signs (0.0 to 1.0)
+  coverage  Float /// "How much of the target's knowledge space is represented?"
+  accuracy  Float /// "Of what we have, how much is factually correct?"
+  freshness Float /// "How current is each piece of knowledge?"
+  depth     Float /// "Are all three knowledge layers populated?"
+  coherence Float /// "Does everything connect properly?"
+
+  /// Composite health score (weighted combination)
+  overallHealth Float @map("overall_health")
+
+  /// Detailed breakdown (what's driving each score)
+  coverageDetails  Json? @map("coverage_details")
+  accuracyDetails  Json? @map("accuracy_details")
+  freshnessDetails Json? @map("freshness_details")
+  depthDetails     Json? @map("depth_details")
+  coherenceDetails Json? @map("coherence_details")
+
+  /// Rate of change (are things getting better or worse?)
+  coverageDelta  Float? @map("coverage_delta")
+  accuracyDelta  Float? @map("accuracy_delta")
+  freshnessDelta Float? @map("freshness_delta")
+  depthDelta     Float? @map("depth_delta")
+  coherenceDelta Float? @map("coherence_delta")
+  overallDelta   Float? @map("overall_delta")
+
+  @@index([measuredAt])
+  @@index([scopeType, scopeId, measuredAt])
+  @@map("health_snapshots")
+}
+
+/// Health events — what happened and why. Tracks every health-relevant event
+/// detected by diagnostic engines, external sensors, or the immune system.
+model HealthEvent {
+  id         BigInt   @id @default(autoincrement())
+  detectedAt DateTime @default(now()) @map("detected_at")
+
+  /// What changed
+  eventType HealthEventType @map("event_type")
+  scopeType ScopeType       @map("scope_type")
+  scopeId   String?         @map("scope_id")
+  severity  HealthSeverity
+
+  /// Human and AI readable description
+  title       String
+  description String
+
+  /// Trigger
+  triggerSource  String? @map("trigger_source") /// "analyzer"|"sensor"|"immune_system"|"manual"
+  triggerDetails Json    @default("{}") @map("trigger_details")
+
+  /// Impact assessment
+  affectedEntries String[] @map("affected_entries")
+  affectedTargets String[] @map("affected_targets")
+  estimatedScope  Int?     @map("estimated_scope") /// How many entries impacted
+
+  /// Response tracking
+  responseStatus ResponseStatus @default(PENDING) @map("response_status")
+  responseAction String?        @map("response_action") /// What was/will be done
+  resolvedAt     DateTime?      @map("resolved_at")
+  resolvedBy     String?        @map("resolved_by") /// "immune_system"|"human"|model name
+
+  metadata Json @default("{}") /// Extensible metadata
+
+  @@index([eventType])
+  @@index([severity, detectedAt])
+  @@index([scopeType, scopeId])
+  @@index([responseStatus])
+  @@map("health_events")
+}
+
+/// Decay ledger — per-entry freshness tracking over time.
+/// Computes how stale each entry is based on age, external events,
+/// and the knowledge type's inherent decay rate.
+model DecayLedger {
+  id      BigInt @id @default(autoincrement())
+  entryId String @map("entry_id")
+
+  /// When was this entry's knowledge "born"?
+  knowledgeTimestamp DateTime @map("knowledge_timestamp")
+
+  /// External events that could affect this entry's freshness
+  decayEvents Json @default("[]") @map("decay_events")
+  /// [{date, event, relevance, impact}]
+
+  /// Computed decay score (0.0 = fresh, 1.0 = completely stale)
+  decayScore Float @default(0.0) @map("decay_score")
+
+  /// When should this entry be reviewed/regenerated?
+  reviewDue DateTime? @map("review_due")
+
+  /// How fast does this type of knowledge go stale?
+  decayRate DecayRate @default(NORMAL) @map("decay_rate")
+
+  lastAssessed DateTime @default(now()) @map("last_assessed")
+
+  // ── Relations ──
+  entry Entry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@index([decayScore(sort: Desc)])
+  @@index([reviewDue])
+  @@index([entryId])
+  @@map("decay_ledger")
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
+// LAYER 7: PIPELINE — Completeness anchors and generation state
+//
+// Supports the 6-phase generation pipeline by tracking exhaustive enumerations
+// (completeness anchors) and pipeline execution state.
+// ════════════════════════════════════════════════════════════════════════════════
+
+/// Completeness anchors — exhaustive enumerations used to verify nothing is missed.
+/// For each target, stores the complete list of keywords, builtins, stdlib modules, etc.
+/// Used by the gap analysis phase to measure coverage.
+model CompletenessAnchor {
+  id           String @id @default(cuid())
+  targetId     String @map("target_id")
+  anchorType   String @map("anchor_type") /// "keywords"|"builtins"|"stdlib"|"operators"|...
+  items        Json   @default("[]") /// The complete list of items
+  totalCount   Int    @map("total_count") /// How many items in the list
+  coveredCount Int    @default(0) @map("covered_count") /// How many are documented
+  missingItems Json   @default("[]") @map("missing_items") /// Items not yet documented
+
+  /// Provenance
+  generatedBy String?   @map("generated_by")
+  verifiedAt  DateTime? @map("verified_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([targetId, anchorType])
+  @@index([targetId])
+  @@map("completeness_anchors")
+}
+
+/// Topic tree nodes — hierarchical decomposition of a target's knowledge space.
+/// Generated in Phase 1 (DECOMPOSE) of the pipeline.
+model TopicNode {
+  id          String  @id @default(cuid())
+  targetId    String  @map("target_id")
+  parentId    String? @map("parent_id") /// Self-referential hierarchy
+  nodeType    String  @map("node_type") /// "root"|"category"|"subcategory"|"topic"|"leaf"
+  title       String
+  description String  @default("")
+  path        String  @default("") /// "Python/Type System/Primitives/int"
+  depth       Int     @default(0)
+
+  /// Generation state
+  isGenerated            Boolean @default(false) @map("is_generated")
+  isValidated            Boolean @default(false) @map("is_validated")
+  estimatedSubtopicCount Int     @default(0) @map("estimated_subtopic_count")
+
+  /// Link to the generated entry (once Phase 3 completes)
+  entryId String? @map("entry_id") /// The entry generated from this topic node
+
+  metadata Json @default("{}") /// Extensible metadata
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // ── Relations ──
+  parent   TopicNode?  @relation("TopicHierarchy", fields: [parentId], references: [id])
+  children TopicNode[] @relation("TopicHierarchy")
+
+  @@index([targetId])
+  @@index([parentId])
+  @@index([targetId, path])
+  @@map("topic_nodes")
+}
