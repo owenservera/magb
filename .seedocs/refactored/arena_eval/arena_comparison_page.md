@@ -1,0 +1,7640 @@
+---
+type: arena_eval
+source_file: "page-2026-03-12-23-32-29.md"
+description: "Original project documentation refactored with an intelligence layer for automated LLM accessibility."
+llm_accessibility:
+  - This document contains 100% of its original source material below the '--- ORIGINAL CONTENT ---' marker.
+  - Recommended usage: Use this document to understand the arena_eval aspects of the magB/ACE/Universal Blueprint Machine system.
+---
+
+<llm_context>
+# Document Intelligence Layer
+**Context:** This document is part of the refactored `.seedocs` repository, detailing the architecture, concepts, and planning for the Universal Blueprint Machine (magB) and AI Contribution Engine (ACE).
+**Category:** `arena_eval`
+**Original File:** `page-2026-03-12-23-32-29.md`
+**AI Assistant Directives:** 
+1. When querying this document, treat the original content as the definitive ground truth.
+2. Use the provided schemas, code blocks, and diagrams directly for implementation and analysis.
+3. This intelligence layer ensures context window efficiency by explicitly stating the document's boundaries and purpose.
+</llm_context>
+
+--- ORIGINAL CONTENT ---
+
+# Arena AI: Compare Models Side by Side
+
+Side by Side
+
+[](/)
+
+Anthropicclaude-opus-4-6-thinking
+
+Anthropicclaude-opus-4-6
+
+Side by Side
+
+Anthropicclaude-opus-4-6-thinking
+
+Anthropicclaude-opus-4-6
+
+Anthropicclaude-opus-4-6-thinking
+
+# 🤖 AI Contribution Engine (ACE)
+
+## A Future-Proof, Open-Source System for AI-Powered Collaborative Development
+
+---
+
+## Table of Contents
+
+1.  [Vision & Architecture Overview](#1-vision--architecture-overview)
+2.  [System Architecture](#2-system-architecture)
+3.  [Core Data Models](#3-core-data-models)
+4.  [Contribution Gateway](#4-contribution-gateway)
+5.  [AI Provider Abstraction Layer](#5-ai-provider-abstraction-layer)
+6.  [Task Orchestration Engine](#6-task-orchestration-engine)
+7.  [Token Budget Manager](#7-token-budget-manager)
+8.  [Work Distribution Pipeline](#8-work-distribution-pipeline)
+9.  [Security & Secrets Management](#9-security--secrets-management)
+10.  [SDK & Plugin System](#10-sdk--plugin-system)
+11.  [Dashboard & API](#11-dashboard--api)
+12.  [Deployment](#12-deployment)
+13.  [Future Roadmap](#13-future-roadmap)
+
+---
+
+## 1\. Vision & Architecture Overview
+
+### The Problem
+
+Open-source projects need AI assistance (code generation, reviews, docs, testing), but AI API costs are centralized. Contributors want to donate _AI compute_ — not just code or money.
+
+### The Solution
+
+**ACE** lets contributors plug in their AI API keys or accounts, set token/dollar budgets, and the system **automatically pools and allocates AI resources** to advance the project — code generation, PR reviews, documentation, test writing, bug triage, and more.
+
+text
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        ACE - AI Contribution Engine                 │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐              │
+│  │ Contributor A │  │ Contributor B │  │ Contributor C │   ...       │
+│  │ OpenAI Key   │  │ Anthropic Key │  │ Local LLM    │              │
+│  │ $50/month    │  │ $30/month     │  │ Unlimited     │              │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘              │
+│         │                 │                  │                       │
+│         ▼                 ▼                  ▼                       │
+│  ┌─────────────────────────────────────────────────────┐            │
+│  │          🔐 Secure Credential Vault                  │            │
+│  │          (HashiCorp Vault / SOPS / Sealed Secrets)   │            │
+│  └──────────────────────┬──────────────────────────────┘            │
+│                         │                                            │
+│  ┌──────────────────────▼──────────────────────────────┐            │
+│  │          🔌 AI Provider Abstraction Layer            │            │
+│  │   OpenAI │ Anthropic │ Google │ Mistral │ Ollama    │            │
+│  │   Cohere │ HuggingFace │ AWS Bedrock │ Custom      │            │
+│  └──────────────────────┬──────────────────────────────┘            │
+│                         │                                            │
+│  ┌──────────────────────▼──────────────────────────────┐            │
+│  │          💰 Token Budget Manager                     │            │
+│  │   Per-contributor limits │ Pool allocation │ Billing │            │
+│  └──────────────────────┬──────────────────────────────┘            │
+│                         │                                            │
+│  ┌──────────────────────▼──────────────────────────────┐            │
+│  │          🧠 Task Orchestration Engine                │            │
+│  │   Priority Queue │ DAG Execution │ Retry Logic       │            │
+│  └──────────────────────┬──────────────────────────────┘            │
+│                         │                                            │
+│  ┌──────────────────────▼──────────────────────────────┐            │
+│  │          📋 Work Distribution Pipeline               │            │
+│  │   Code Gen │ PR Review │ Docs │ Tests │ Bug Triage  │            │
+│  └──────────────────────┬──────────────────────────────┘            │
+│                         │                                            │
+│  ┌──────────────────────▼──────────────────────────────┐            │
+│  │          📊 Dashboard, API & GitHub Integration      │            │
+│  └─────────────────────────────────────────────────────┘            │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Design Principles
+
+Principle
+
+Implementation
+
+**Provider Agnostic**
+
+Abstract interface; any LLM provider or local model
+
+**Zero Trust Security**
+
+Keys encrypted at rest, never logged, scoped access
+
+**Fair Distribution**
+
+Proportional allocation based on contribution budgets
+
+**Auditability**
+
+Every token spent is logged with task, result, contributor attribution
+
+**Extensibility**
+
+Plugin architecture for new providers, tasks, and integrations
+
+**Resilience**
+
+Circuit breakers, fallbacks, retry with exponential backoff
+
+---
+
+## 2\. System Architecture
+
+text
+
+```
+ace/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       ├── ace-worker.yml          # GitHub Actions as task runner
+│       └── release.yml
+├── packages/
+│   ├── core/                       # Core orchestration engine
+│   │   ├── src/
+│   │   │   ├── engine/
+│   │   │   │   ├── orchestrator.ts
+│   │   │   │   ├── scheduler.ts
+│   │   │   │   ├── task-graph.ts
+│   │   │   │   └── executor.ts
+│   │   │   ├── budget/
+│   │   │   │   ├── manager.ts
+│   │   │   │   ├── allocator.ts
+│   │   │   │   ├── tracker.ts
+│   │   │   │   └── policies.ts
+│   │   │   ├── providers/
+│   │   │   │   ├── base.ts
+│   │   │   │   ├── registry.ts
+│   │   │   │   ├── openai.ts
+│   │   │   │   ├── anthropic.ts
+│   │   │   │   ├── google.ts
+│   │   │   │   ├── mistral.ts
+│   │   │   │   ├── ollama.ts
+│   │   │   │   ├── huggingface.ts
+│   │   │   │   ├── bedrock.ts
+│   │   │   │   └── custom.ts
+│   │   │   ├── security/
+│   │   │   │   ├── vault.ts
+│   │   │   │   ├── encryption.ts
+│   │   │   │   ├── audit.ts
+│   │   │   │   └── rbac.ts
+│   │   │   ├── tasks/
+│   │   │   │   ├── base-task.ts
+│   │   │   │   ├── code-generation.ts
+│   │   │   │   ├── pr-review.ts
+│   │   │   │   ├── documentation.ts
+│   │   │   │   ├── test-generation.ts
+│   │   │   │   ├── bug-triage.ts
+│   │   │   │   ├── refactoring.ts
+│   │   │   │   └── translation.ts
+│   │   │   └── index.ts
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   ├── api/                        # REST + GraphQL API
+│   │   ├── src/
+│   │   │   ├── routes/
+│   │   │   ├── graphql/
+│   │   │   ├── middleware/
+│   │   │   └── server.ts
+│   │   └── package.json
+│   ├── dashboard/                  # Web dashboard (React/Next.js)
+│   │   ├── src/
+│   │   │   ├── app/
+│   │   │   ├── components/
+│   │   │   └── hooks/
+│   │   └── package.json
+│   ├── cli/                        # CLI tool
+│   │   ├── src/
+│   │   │   ├── commands/
+│   │   │   └── index.ts
+│   │   └── package.json
+│   ├── sdk/                        # SDK for plugin development
+│   │   ├── src/
+│   │   │   ├── plugin.ts
+│   │   │   ├── provider.ts
+│   │   │   └── task.ts
+│   │   └── package.json
+│   └── github-app/                 # GitHub App integration
+│       ├── src/
+│       │   ├── webhooks/
+│       │   ├── commands/
+│       │   └── app.ts
+│       └── package.json
+├── plugins/                        # Community plugins
+│   ├── plugin-sentry/
+│   ├── plugin-linear/
+│   └── plugin-slack/
+├── infra/
+│   ├── docker/
+│   │   ├── Dockerfile
+│   │   └── docker-compose.yml
+│   ├── k8s/
+│   │   ├── helm/
+│   │   └── manifests/
+│   └── terraform/
+├── docs/
+├── examples/
+├── turbo.json
+├── package.json
+└── LICENSE (Apache-2.0)
+```
+
+---
+
+## 3\. Core Data Models
+
+TypeScript
+
+```
+// packages/core/src/models/types.ts
+
+// ─────────────────────────────────────────────────────
+// Contributor & Credentials
+// ─────────────────────────────────────────────────────
+
+export interface Contributor {
+  id: string;                          // UUID
+  githubId?: string;
+  email: string;
+  displayName: string;
+  
+  // Contribution configuration
+  contributions: AIContribution[];
+  
+  // Permissions
+  role: 'owner' | 'maintainer' | 'contributor' | 'sponsor';
+  
+  // Stats
+  totalTokensDonated: number;
+  totalCostDonated: number;            // In USD
+  tasksCompleted: number;
+  
+  joinedAt: Date;
+  lastActiveAt: Date;
+}
+
+export interface AIContribution {
+  id: string;
+  contributorId: string;
+  
+  // Provider configuration
+  provider: ProviderType;
+  credentialRef: string;               // Reference to encrypted credential in vault
+  
+  // Budget controls
+  budget: BudgetConfig;
+  
+  // Preferences
+  preferences: ContributionPreferences;
+  
+  // Status
+  status: 'active' | 'paused' | 'exhausted' | 'error';
+  healthCheck: HealthStatus;
+  
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface BudgetConfig {
+  // Spending limits
+  maxMonthlySpendUSD: number;          // e.g., $50/month
+  maxDailySpendUSD?: number;           // e.g., $5/day
+  maxPerTaskSpendUSD?: number;         // e.g., $2/task
+  
+  // Token limits (alternative to USD)
+  maxMonthlyTokens?: number;           // e.g., 1M tokens/month
+  maxDailyTokens?: number;
+  
+  // Usage tracking
+  currentMonthSpendUSD: number;
+  currentMonthTokens: number;
+  currentDaySpendUSD: number;
+  currentDayTokens: number;
+  
+  // Reset schedule
+  billingCycleStart: Date;
+  
+  // Alerts
+  alertThresholds: number[];           // e.g., [0.5, 0.8, 0.95] = alert at 50%, 80%, 95%
+}
+
+export interface ContributionPreferences {
+  // What tasks this contribution can be used for
+  allowedTasks: TaskType[];            // e.g., ['code-generation', 'pr-review']
+  
+  // Model preferences
+  preferredModels?: string[];          // e.g., ['gpt-4o', 'claude-3.5-sonnet']
+  maxModelTier?: 'economy' | 'standard' | 'premium';  // Cost tier limit
+  
+  // Scheduling
+  activeHours?: {                      // Only use during certain hours (cost optimization)
+    timezone: string;
+    windows: Array<{ start: string; end: string }>;
+  };
+  
+  // Priority
+  priorityMultiplier: number;          // 1.0 = normal, 2.0 = double priority weight
+}
+
+// ─────────────────────────────────────────────────────
+// Providers
+// ─────────────────────────────────────────────────────
+
+export type ProviderType = 
+  | 'openai' 
+  | 'anthropic' 
+  | 'google' 
+  | 'mistral' 
+  | 'cohere'
+  | 'huggingface'
+  | 'aws-bedrock'
+  | 'azure-openai'
+  | 'ollama'
+  | 'openrouter'
+  | 'together'
+  | 'groq'
+  | 'custom';
+
+export interface ProviderCapability {
+  provider: ProviderType;
+  models: ModelInfo[];
+  supportsStreaming: boolean;
+  supportsFunctionCalling: boolean;
+  supportsVision: boolean;
+  supportsEmbeddings: boolean;
+  maxContextWindow: number;
+  rateLimits: RateLimitConfig;
+}
+
+export interface ModelInfo {
+  id: string;                          // e.g., 'gpt-4o'
+  name: string;                        // e.g., 'GPT-4o'
+  tier: 'economy' | 'standard' | 'premium';
+  costPer1kInputTokens: number;        // USD
+  costPer1kOutputTokens: number;       // USD
+  maxContextTokens: number;
+  capabilities: string[];              // ['chat', 'code', 'vision', 'function-calling']
+}
+
+export interface RateLimitConfig {
+  requestsPerMinute: number;
+  tokensPerMinute: number;
+  requestsPerDay?: number;
+  concurrentRequests: number;
+}
+
+// ─────────────────────────────────────────────────────
+// Tasks
+// ─────────────────────────────────────────────────────
+
+export type TaskType = 
+  | 'code-generation'
+  | 'pr-review'
+  | 'documentation'
+  | 'test-generation'
+  | 'bug-triage'
+  | 'refactoring'
+  | 'translation'
+  | 'code-explanation'
+  | 'security-audit'
+  | 'dependency-update'
+  | 'issue-analysis'
+  | 'custom';
+
+export type TaskPriority = 'critical' | 'high' | 'medium' | 'low' | 'background';
+
+export type TaskStatus = 
+  | 'pending'
+  | 'queued'
+  | 'allocated'
+  | 'running'
+  | 'streaming'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'retrying';
+
+export interface Task {
+  id: string;
+  projectId: string;
+  
+  // Task definition
+  type: TaskType;
+  title: string;
+  description: string;
+  priority: TaskPriority;
+  
+  // Context
+  context: TaskContext;
+  
+  // Requirements
+  requirements: TaskRequirements;
+  
+  // Execution
+  status: TaskStatus;
+  assignedContribution?: string;       // Which contribution is funding this
+  assignedModel?: string;              // Which model is executing
+  
+  // Results
+  result?: TaskResult;
+  
+  // Relationships
+  parentTaskId?: string;               // For subtask decomposition
+  childTaskIds: string[];
+  dependsOn: string[];                 // Task IDs this depends on
+  
+  // Retry
+  attemptCount: number;
+  maxAttempts: number;
+  lastError?: string;
+  
+  // Metadata
+  createdAt: Date;
+  startedAt?: Date;
+  completedAt?: Date;
+  estimatedTokens: number;
+  actualTokens?: number;
+  estimatedCostUSD: number;
+  actualCostUSD?: number;
+  
+  // Attribution
+  requestedBy: string;                 // User or automation that created the task
+  fundedBy?: string;                   // Contributor whose tokens were used
+}
+
+export interface TaskContext {
+  // Repository context
+  repository: {
+    owner: string;
+    name: string;
+    defaultBranch: string;
+    language: string;
+    frameworks: string[];
+  };
+  
+  // Relevant files
+  files: Array<{
+    path: string;
+    content: string;
+    language: string;
+  }>;
+  
+  // Issue/PR context
+  issue?: {
+    number: number;
+    title: string;
+    body: string;
+    labels: string[];
+    comments: Array<{ author: string; body: string }>;
+  };
+  
+  pullRequest?: {
+    number: number;
+    title: string;
+    body: string;
+    diff: string;
+    changedFiles: string[];
+  };
+  
+  // Project conventions
+  conventions?: {
+    codeStyle?: string;
+    architecture?: string;
+    testingStrategy?: string;
+    commitMessageFormat?: string;
+  };
+  
+  // Additional context from embeddings/RAG
+  relevantDocs?: string[];
+  similarIssues?: string[];
+}
+
+export interface TaskRequirements {
+  // Model requirements
+  minModelTier: 'economy' | 'standard' | 'premium';
+  requiredCapabilities: string[];      // e.g., ['function-calling', 'code']
+  minContextWindow?: number;
+  
+  // Execution requirements
+  maxLatencyMs?: number;               // For time-sensitive tasks
+  requiresStreaming?: boolean;
+  
+  // Quality requirements
+  requiresHumanReview: boolean;
+  autoMerge: boolean;                  // Can results be auto-applied?
+  confidenceThreshold?: number;        // 0-1, minimum confidence to accept result
+}
+
+export interface TaskResult {
+  success: boolean;
+  
+  // Output
+  output: string;                      // Primary output (code, review, docs, etc.)
+  structuredOutput?: Record<string, unknown>;
+  
+  // For code generation
+  codeChanges?: Array<{
+    filePath: string;
+    operation: 'create' | 'modify' | 'delete';
+    content: string;
+    diff?: string;
+  }>;
+  
+  // Metadata
+  model: string;
+  provider: ProviderType;
+  tokensUsed: { input: number; output: number; total: number };
+  costUSD: number;
+  latencyMs: number;
+  confidence: number;                  // 0-1
+  
+  // Quality
+  qualityScore?: number;              // 0-1, from automated evaluation
+  humanApproved?: boolean;
+  
+  // Reasoning trace (for debugging/transparency)
+  reasoning?: string;
+}
+
+// ─────────────────────────────────────────────────────
+// Audit & Telemetry
+// ─────────────────────────────────────────────────────
+
+export interface AuditEntry {
+  id: string;
+  timestamp: Date;
+  
+  // What happened
+  action: string;                      // e.g., 'task.executed', 'budget.depleted'
+  
+  // Who
+  contributorId?: string;
+  taskId?: string;
+  
+  // Details
+  provider: ProviderType;
+  model: string;
+  tokensUsed: number;
+  costUSD: number;
+  
+  // Result
+  success: boolean;
+  error?: string;
+  
+  // Context
+  metadata: Record<string, unknown>;
+}
+
+// ─────────────────────────────────────────────────────
+// Project Configuration
+// ─────────────────────────────────────────────────────
+
+export interface ProjectConfig {
+  id: string;
+  name: string;
+  repository: string;                 // e.g., 'owner/repo'
+  
+  // Task policies
+  taskPolicies: {
+    defaultPriority: TaskPriority;
+    maxConcurrentTasks: number;
+    requireApprovalAboveUSD: number;   // Human approval for expensive tasks
+    autoRetryOnFailure: boolean;
+    maxRetries: number;
+  };
+  
+  // Budget allocation strategy
+  allocationStrategy: 'round-robin' | 'proportional' | 'priority-based' | 'cost-optimized';
+  
+  // Quality gates
+  qualityGates: {
+    minConfidence: number;
+    requireReviewForCodeChanges: boolean;
+    requireTestsForNewCode: boolean;
+    maxFilesPerChange: number;
+  };
+  
+  // Integrations
+  integrations: {
+    github: { appId: string; installationId: string };
+    slack?: { webhookUrl: string; channel: string };
+    discord?: { webhookUrl: string };
+  };
+  
+  // Prompt templates (customizable per project)
+  promptTemplates: Record<TaskType, string>;
+}
+```
+
+---
+
+## 4\. Contribution Gateway
+
+The entry point for contributors to register their AI resources.
+
+TypeScript
+
+```
+// packages/core/src/gateway/contribution-gateway.ts
+
+import { EventEmitter } from 'events';
+import { nanoid } from 'nanoid';
+import {
+  AIContribution,
+  BudgetConfig,
+  Contributor,
+  ContributionPreferences,
+  ProviderType,
+  HealthStatus,
+} from '../models/types';
+import { SecureVault } from '../security/vault';
+import { ProviderRegistry } from '../providers/registry';
+import { BudgetManager } from '../budget/manager';
+import { AuditLogger } from '../security/audit';
+
+export interface RegisterContributionInput {
+  contributorId: string;
+  provider: ProviderType;
+  
+  // Credential — one of:
+  credential: 
+    | { type: 'api-key'; apiKey: string; organizationId?: string }
+    | { type: 'oauth'; accessToken: string; refreshToken?: string }
+    | { type: 'endpoint'; baseUrl: string; apiKey?: string; headers?: Record<string, string> };
+  
+  budget: Omit<BudgetConfig, 'currentMonthSpendUSD' | 'currentMonthTokens' | 'currentDaySpendUSD' | 'currentDayTokens' | 'billingCycleStart'>;
+  preferences?: Partial<ContributionPreferences>;
+}
+
+export class ContributionGateway extends EventEmitter {
+  constructor(
+    private vault: SecureVault,
+    private providerRegistry: ProviderRegistry,
+    private budgetManager: BudgetManager,
+    private auditLogger: AuditLogger,
+    private contributionStore: ContributionStore,
+  ) {
+    super();
+  }
+
+  /**
+   * Register a new AI contribution.
+   * Validates the credential, stores it securely, and activates the contribution.
+   */
+  async registerContribution(input: RegisterContributionInput): Promise<AIContribution> {
+    const contributionId = nanoid();
+    
+    // 1. Validate the credential works
+    this.auditLogger.log({
+      action: 'contribution.register.start',
+      contributorId: input.contributorId,
+      provider: input.provider,
+    });
+
+    const provider = this.providerRegistry.getProvider(input.provider);
+    const validation = await provider.validateCredential(input.credential);
+    
+    if (!validation.valid) {
+      this.auditLogger.log({
+        action: 'contribution.register.failed',
+        contributorId: input.contributorId,
+        error: validation.error,
+      });
+      throw new ContributionError(
+        `Credential validation failed: ${validation.error}`,
+        'INVALID_CREDENTIAL'
+      );
+    }
+
+    // 2. Store credential securely in vault
+    const credentialRef = await this.vault.storeSecret(
+      `contributions/${contributionId}/credential`,
+      input.credential,
+      {
+        contributorId: input.contributorId,
+        provider: input.provider,
+        // Auto-rotate reminder
+        rotateAfterDays: 90,
+      }
+    );
+
+    // 3. Create the contribution record
+    const contribution: AIContribution = {
+      id: contributionId,
+      contributorId: input.contributorId,
+      provider: input.provider,
+      credentialRef,
+      budget: {
+        ...input.budget,
+        currentMonthSpendUSD: 0,
+        currentMonthTokens: 0,
+        currentDaySpendUSD: 0,
+        currentDayTokens: 0,
+        billingCycleStart: new Date(),
+        alertThresholds: input.budget.alertThresholds ?? [0.5, 0.8, 0.95],
+      },
+      preferences: {
+        allowedTasks: input.preferences?.allowedTasks ?? [
+          'code-generation', 'pr-review', 'documentation', 
+          'test-generation', 'bug-triage',
+        ],
+        maxModelTier: input.preferences?.maxModelTier ?? 'standard',
+        priorityMultiplier: input.preferences?.priorityMultiplier ?? 1.0,
+        ...input.preferences,
+      },
+      status: 'active',
+      healthCheck: {
+        lastCheck: new Date(),
+        status: 'healthy',
+        latencyMs: validation.latencyMs,
+      },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // 4. Persist
+    await this.contributionStore.save(contribution);
+    
+    // 5. Register with budget manager
+    await this.budgetManager.registerBudget(contribution);
+
+    // 6. Emit event
+    this.emit('contribution:registered', contribution);
+    
+    this.auditLogger.log({
+      action: 'contribution.register.success',
+      contributorId: input.contributorId,
+      contributionId,
+      provider: input.provider,
+      monthlyBudgetUSD: input.budget.maxMonthlySpendUSD,
+    });
+
+    return contribution;
+  }
+
+  /**
+   * Update budget or preferences for an existing contribution.
+   */
+  async updateContribution(
+    contributionId: string,
+    updates: {
+      budget?: Partial<BudgetConfig>;
+      preferences?: Partial<ContributionPreferences>;
+      status?: 'active' | 'paused';
+    }
+  ): Promise<AIContribution> {
+    const contribution = await this.contributionStore.get(contributionId);
+    if (!contribution) {
+      throw new ContributionError('Contribution not found', 'NOT_FOUND');
+    }
+
+    if (updates.budget) {
+      Object.assign(contribution.budget, updates.budget);
+    }
+    if (updates.preferences) {
+      Object.assign(contribution.preferences, updates.preferences);
+    }
+    if (updates.status) {
+      contribution.status = updates.status;
+    }
+    contribution.updatedAt = new Date();
+
+    await this.contributionStore.save(contribution);
+    await this.budgetManager.updateBudget(contribution);
+    
+    this.emit('contribution:updated', contribution);
+    return contribution;
+  }
+
+  /**
+   * Rotate credentials for a contribution.
+   */
+  async rotateCredential(
+    contributionId: string,
+    newCredential: RegisterContributionInput['credential']
+  ): Promise<void> {
+    const contribution = await this.contributionStore.get(contributionId);
+    if (!contribution) {
+      throw new ContributionError('Contribution not found', 'NOT_FOUND');
+    }
+
+    // Validate new credential
+    const provider = this.providerRegistry.getProvider(contribution.provider);
+    const validation = await provider.validateCredential(newCredential);
+    if (!validation.valid) {
+      throw new ContributionError(
+        `New credential validation failed: ${validation.error}`,
+        'INVALID_CREDENTIAL'
+      );
+    }
+
+    // Revoke old, store new
+    await this.vault.rotateSecret(contribution.credentialRef, newCredential);
+    
+    contribution.healthCheck = {
+      lastCheck: new Date(),
+      status: 'healthy',
+      latencyMs: validation.latencyMs,
+    };
+    contribution.updatedAt = new Date();
+    
+    await this.contributionStore.save(contribution);
+    
+    this.auditLogger.log({
+      action: 'contribution.credential.rotated',
+      contributionId,
+      contributorId: contribution.contributorId,
+    });
+  }
+
+  /**
+   * Health check all active contributions.
+   */
+  async healthCheckAll(): Promise<Map<string, HealthStatus>> {
+    const contributions = await this.contributionStore.getActive();
+    const results = new Map<string, HealthStatus>();
+
+    await Promise.allSettled(
+      contributions.map(async (contribution) => {
+        try {
+          const provider = this.providerRegistry.getProvider(contribution.provider);
+          const credential = await this.vault.getSecret(contribution.credentialRef);
+          const health = await provider.healthCheck(credential);
+          
+          contribution.healthCheck = {
+            lastCheck: new Date(),
+            status: health.ok ? 'healthy' : 'degraded',
+            latencyMs: health.latencyMs,
+            error: health.error,
+          };
+
+          if (!health.ok) {
+            contribution.status = 'error';
+            this.emit('contribution:unhealthy', contribution);
+          }
+
+          results.set(contribution.id, contribution.healthCheck);
+          await this.contributionStore.save(contribution);
+        } catch (error) {
+          const healthStatus: HealthStatus = {
+            lastCheck: new Date(),
+            status: 'unhealthy',
+            error: error instanceof Error ? error.message : 'Unknown error',
+          };
+          contribution.healthCheck = healthStatus;
+          contribution.status = 'error';
+          results.set(contribution.id, healthStatus);
+          await this.contributionStore.save(contribution);
+        }
+      })
+    );
+
+    return results;
+  }
+
+  /**
+   * Get all contributions available for a specific task type and model tier.
+   */
+  async getAvailableContributions(
+    taskType: string,
+    modelTier: 'economy' | 'standard' | 'premium',
+    estimatedCostUSD: number
+  ): Promise<AIContribution[]> {
+    const active = await this.contributionStore.getActive();
+    
+    return active.filter(contribution => {
+      // Check task type is allowed
+      if (!contribution.preferences.allowedTasks.includes(taskType as any)) {
+        return false;
+      }
+      
+      // Check model tier is within budget
+      const tierOrder = { economy: 1, standard: 2, premium: 3 };
+      if (tierOrder[modelTier] > tierOrder[contribution.preferences.maxModelTier ?? 'standard']) {
+        return false;
+      }
+      
+      // Check budget has room
+      if (!this.budgetManager.canAfford(contribution.id, estimatedCostUSD)) {
+        return false;
+      }
+      
+      // Check health
+      if (contribution.healthCheck.status === 'unhealthy') {
+        return false;
+      }
+      
+      // Check active hours
+      if (contribution.preferences.activeHours) {
+        if (!this.isWithinActiveHours(contribution.preferences.activeHours)) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  }
+
+  private isWithinActiveHours(config: ContributionPreferences['activeHours']): boolean {
+    if (!config) return true;
+    
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: config.timezone,
+    });
+    const currentTime = formatter.format(now);
+    
+    return config.windows.some(
+      window => currentTime >= window.start && currentTime <= window.end
+    );
+  }
+}
+
+export class ContributionError extends Error {
+  constructor(message: string, public code: string) {
+    super(message);
+    this.name = 'ContributionError';
+  }
+}
+
+// Store interface (implement with your preferred DB)
+export interface ContributionStore {
+  save(contribution: AIContribution): Promise<void>;
+  get(id: string): Promise<AIContribution | null>;
+  getByContributor(contributorId: string): Promise<AIContribution[]>;
+  getActive(): Promise<AIContribution[]>;
+  delete(id: string): Promise<void>;
+}
+```
+
+---
+
+## 5\. AI Provider Abstraction Layer
+
+TypeScript
+
+```
+// packages/core/src/providers/base.ts
+
+export interface AIProviderConfig {
+  credential: any;
+  baseUrl?: string;
+  timeout?: number;
+  retryConfig?: {
+    maxRetries: number;
+    baseDelayMs: number;
+    maxDelayMs: number;
+  };
+}
+
+export interface ChatMessage {
+  role: 'system' | 'user' | 'assistant' | 'function';
+  content: string;
+  name?: string;
+  functionCall?: {
+    name: string;
+    arguments: string;
+  };
+}
+
+export interface ChatCompletionRequest {
+  messages: ChatMessage[];
+  model: string;
+  temperature?: number;
+  maxTokens?: number;
+  topP?: number;
+  stop?: string[];
+  stream?: boolean;
+  functions?: FunctionDefinition[];
+  responseFormat?: { type: 'text' | 'json_object' };
+}
+
+export interface ChatCompletionResponse {
+  id: string;
+  content: string;
+  model: string;
+  usage: {
+    inputTokens: number;
+    outputTokens: number;
+    totalTokens: number;
+  };
+  finishReason: 'stop' | 'length' | 'function_call' | 'content_filter';
+  functionCall?: {
+    name: string;
+    arguments: string;
+  };
+  latencyMs: number;
+}
+
+export interface StreamChunk {
+  content: string;
+  done: boolean;
+  usage?: ChatCompletionResponse['usage'];
+}
+
+export interface FunctionDefinition {
+  name: string;
+  description: string;
+  parameters: Record<string, any>;  // JSON Schema
+}
+
+export interface ValidationResult {
+  valid: boolean;
+  error?: string;
+  latencyMs: number;
+  accountInfo?: {
+    organization?: string;
+    tier?: string;
+    remainingCredits?: number;
+  };
+}
+
+export interface HealthCheckResult {
+  ok: boolean;
+  latencyMs: number;
+  error?: string;
+}
+
+/**
+ * Abstract base class for all AI providers.
+ * Implement this to add a new provider.
+ */
+export abstract class BaseAIProvider {
+  abstract readonly providerType: ProviderType;
+  abstract readonly displayName: string;
+
+  protected config: AIProviderConfig;
+
+  constructor(config: AIProviderConfig) {
+    this.config = config;
+  }
+
+  // ── Core Methods ─────────────────────────────────────
+  
+  abstract chat(request: ChatCompletionRequest): Promise<ChatCompletionResponse>;
+  
+  abstract chatStream(
+    request: ChatCompletionRequest
+  ): AsyncIterable<StreamChunk>;
+
+  abstract validateCredential(credential: any): Promise<ValidationResult>;
+  
+  abstract healthCheck(credential: any): Promise<HealthCheckResult>;
+  
+  // ── Model Information ────────────────────────────────
+  
+  abstract listModels(): Promise<ModelInfo[]>;
+  
+  abstract getModelInfo(modelId: string): Promise<ModelInfo | null>;
+  
+  // ── Token Estimation ─────────────────────────────────
+  
+  abstract estimateTokens(text: string, model: string): Promise<number>;
+  
+  abstract estimateCost(
+    inputTokens: number,
+    outputTokens: number,
+    model: string
+  ): number;
+
+  // ── Utility ──────────────────────────────────────────
+  
+  /**
+   * Retry with exponential backoff
+   */
+  protected async withRetry<T>(
+    fn: () => Promise<T>,
+    context: string
+  ): Promise<T> {
+    const { maxRetries = 3, baseDelayMs = 1000, maxDelayMs = 30000 } = 
+      this.config.retryConfig ?? {};
+    
+    let lastError: Error | undefined;
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await fn();
+      } catch (error) {
+        lastError = error as Error;
+        
+        // Don't retry on authentication errors or invalid requests
+        if (this.isNonRetryableError(error)) {
+          throw error;
+        }
+        
+        if (attempt < maxRetries) {
+          const delay = Math.min(
+            baseDelayMs * Math.pow(2, attempt) + Math.random() * 1000,
+            maxDelayMs
+          );
+          await this.sleep(delay);
+        }
+      }
+    }
+    
+    throw lastError;
+  }
+
+  protected abstract isNonRetryableError(error: unknown): boolean;
+  
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+}
+```
+
+### OpenAI Provider Implementation
+
+TypeScript
+
+```
+// packages/core/src/providers/openai.ts
+
+import OpenAI from 'openai';
+import { BaseAIProvider, ChatCompletionRequest, ChatCompletionResponse, StreamChunk, ValidationResult } from './base';
+import { encoding_for_model } from 'tiktoken';
+
+export class OpenAIProvider extends BaseAIProvider {
+  readonly providerType = 'openai' as const;
+  readonly displayName = 'OpenAI';
+  
+  private client: OpenAI;
+
+  private static PRICING: Record<string, { input: number; output: number }> = {
+    'gpt-4o':           { input: 0.0025,  output: 0.01 },
+    'gpt-4o-mini':      { input: 0.00015, output: 0.0006 },
+    'gpt-4-turbo':      { input: 0.01,    output: 0.03 },
+    'o1':               { input: 0.015,   output: 0.06 },
+    'o1-mini':          { input: 0.003,   output: 0.012 },
+    'o3-mini':          { input: 0.0011,  output: 0.0044 },
+  };
+
+  constructor(config: AIProviderConfig) {
+    super(config);
+    this.client = new OpenAI({
+      apiKey: config.credential.apiKey,
+      organization: config.credential.organizationId,
+      timeout: config.timeout ?? 120_000,
+      maxRetries: 0, // We handle retries ourselves
+    });
+  }
+
+  async chat(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
+    return this.withRetry(async () => {
+      const start = Date.now();
+      
+      const response = await this.client.chat.completions.create({
+        model: request.model,
+        messages: request.messages.map(m => ({
+          role: m.role as any,
+          content: m.content,
+          name: m.name,
+        })),
+        temperature: request.temperature,
+        max_tokens: request.maxTokens,
+        top_p: request.topP,
+        stop: request.stop,
+        response_format: request.responseFormat,
+        tools: request.functions?.map(f => ({
+          type: 'function' as const,
+          function: {
+            name: f.name,
+            description: f.description,
+            parameters: f.parameters,
+          },
+        })),
+      });
+
+      const latencyMs = Date.now() - start;
+      const choice = response.choices[0];
+
+      return {
+        id: response.id,
+        content: choice.message.content ?? '',
+        model: response.model,
+        usage: {
+          inputTokens: response.usage?.prompt_tokens ?? 0,
+          outputTokens: response.usage?.completion_tokens ?? 0,
+          totalTokens: response.usage?.total_tokens ?? 0,
+        },
+        finishReason: this.mapFinishReason(choice.finish_reason),
+        functionCall: choice.message.tool_calls?.[0]
+          ? {
+              name: choice.message.tool_calls[0].function.name,
+              arguments: choice.message.tool_calls[0].function.arguments,
+            }
+          : undefined,
+        latencyMs,
+      };
+    }, 'openai.chat');
+  }
+
+  async *chatStream(request: ChatCompletionRequest): AsyncIterable<StreamChunk> {
+    const stream = await this.client.chat.completions.create({
+      model: request.model,
+      messages: request.messages.map(m => ({
+        role: m.role as any,
+        content: m.content,
+      })),
+      temperature: request.temperature,
+      max_tokens: request.maxTokens,
+      stream: true,
+      stream_options: { include_usage: true },
+    });
+
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content ?? '';
+      const done = chunk.choices[0]?.finish_reason != null;
+      
+      yield {
+        content,
+        done,
+        usage: chunk.usage ? {
+          inputTokens: chunk.usage.prompt_tokens,
+          outputTokens: chunk.usage.completion_tokens,
+          totalTokens: chunk.usage.total_tokens,
+        } : undefined,
+      };
+    }
+  }
+
+  async validateCredential(credential: any): Promise<ValidationResult> {
+    try {
+      const start = Date.now();
+      const client = new OpenAI({ 
+        apiKey: credential.apiKey,
+        organization: credential.organizationId,
+      });
+      
+      // Minimal API call to verify
+      const models = await client.models.list();
+      const latencyMs = Date.now() - start;
+      
+      return {
+        valid: true,
+        latencyMs,
+        accountInfo: {
+          organization: credential.organizationId,
+        },
+      };
+    } catch (error: any) {
+      return {
+        valid: false,
+        error: error.message ?? 'Credential validation failed',
+        latencyMs: 0,
+      };
+    }
+  }
+
+  async healthCheck(credential: any): Promise<HealthCheckResult> {
+    const result = await this.validateCredential(credential);
+    return {
+      ok: result.valid,
+      latencyMs: result.latencyMs,
+      error: result.error,
+    };
+  }
+
+  async listModels(): Promise<ModelInfo[]> {
+    const models = await this.client.models.list();
+    return models.data
+      .filter(m => m.id.startsWith('gpt-') || m.id.startsWith('o1') || m.id.startsWith('o3'))
+      .map(m => this.toModelInfo(m.id));
+  }
+
+  async getModelInfo(modelId: string): Promise<ModelInfo | null> {
+    try {
+      await this.client.models.retrieve(modelId);
+      return this.toModelInfo(modelId);
+    } catch {
+      return null;
+    }
+  }
+
+  async estimateTokens(text: string, model: string): Promise<number> {
+    try {
+      const enc = encoding_for_model(model as any);
+      const tokens = enc.encode(text);
+      enc.free();
+      return tokens.length;
+    } catch {
+      // Fallback: rough estimation
+      return Math.ceil(text.length / 4);
+    }
+  }
+
+  estimateCost(inputTokens: number, outputTokens: number, model: string): number {
+    const pricing = OpenAIProvider.PRICING[model] ?? OpenAIProvider.PRICING['gpt-4o-mini'];
+    return (
+      (inputTokens / 1000) * pricing.input +
+      (outputTokens / 1000) * pricing.output
+    );
+  }
+
+  protected isNonRetryableError(error: unknown): boolean {
+    if (error instanceof OpenAI.AuthenticationError) return true;
+    if (error instanceof OpenAI.BadRequestError) return true;
+    if (error instanceof OpenAI.PermissionDeniedError) return true;
+    return false;
+  }
+
+  private toModelInfo(modelId: string): ModelInfo {
+    const pricing = OpenAIProvider.PRICING[modelId];
+    const tier = modelId.includes('mini') ? 'economy' 
+      : modelId.startsWith('o1') || modelId.startsWith('o3') ? 'premium'
+      : 'standard';
+    
+    return {
+      id: modelId,
+      name: modelId.toUpperCase(),
+      tier,
+      costPer1kInputTokens: pricing?.input ?? 0.01,
+      costPer1kOutputTokens: pricing?.output ?? 0.03,
+      maxContextTokens: this.getContextWindow(modelId),
+      capabilities: this.getCapabilities(modelId),
+    };
+  }
+
+  private getContextWindow(model: string): number {
+    if (model.includes('gpt-4o')) return 128000;
+    if (model.includes('gpt-4-turbo')) return 128000;
+    if (model.startsWith('o1') || model.startsWith('o3')) return 200000;
+    return 128000;
+  }
+
+  private getCapabilities(model: string): string[] {
+    const base = ['chat', 'code'];
+    if (model.includes('gpt-4o') || model.includes('gpt-4-turbo')) {
+      base.push('function-calling', 'json-mode');
+    }
+    if (model === 'gpt-4o') {
+      base.push('vision');
+    }
+    return base;
+  }
+
+  private mapFinishReason(reason: string | null): ChatCompletionResponse['finishReason'] {
+    switch (reason) {
+      case 'stop': return 'stop';
+      case 'length': return 'length';
+      case 'tool_calls': return 'function_call';
+      case 'content_filter': return 'content_filter';
+      default: return 'stop';
+    }
+  }
+}
+```
+
+### Anthropic Provider Implementation
+
+TypeScript
+
+```
+// packages/core/src/providers/anthropic.ts
+
+import Anthropic from '@anthropic-ai/sdk';
+import { BaseAIProvider, ChatCompletionRequest, ChatCompletionResponse, StreamChunk, ValidationResult } from './base';
+
+export class AnthropicProvider extends BaseAIProvider {
+  readonly providerType = 'anthropic' as const;
+  readonly displayName = 'Anthropic';
+  
+  private client: Anthropic;
+
+  private static PRICING: Record<string, { input: number; output: number }> = {
+    'claude-sonnet-4-20250514':     { input: 0.003,  output: 0.015 },
+    'claude-3-5-sonnet-20241022': { input: 0.003,  output: 0.015 },
+    'claude-3-5-haiku-20241022':  { input: 0.0008, output: 0.004 },
+    'claude-3-opus-20240229':     { input: 0.015,  output: 0.075 },
+  };
+
+  constructor(config: AIProviderConfig) {
+    super(config);
+    this.client = new Anthropic({
+      apiKey: config.credential.apiKey,
+      timeout: config.timeout ?? 120_000,
+      maxRetries: 0,
+    });
+  }
+
+  async chat(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
+    return this.withRetry(async () => {
+      const start = Date.now();
+      
+      // Separate system message (Anthropic uses top-level system param)
+      const systemMessage = request.messages.find(m => m.role === 'system')?.content;
+      const messages = request.messages
+        .filter(m => m.role !== 'system')
+        .map(m => ({
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+        }));
+
+      const response = await this.client.messages.create({
+        model: request.model,
+        system: systemMessage,
+        messages,
+        max_tokens: request.maxTokens ?? 4096,
+        temperature: request.temperature,
+        top_p: request.topP,
+        stop_sequences: request.stop,
+        tools: request.functions?.map(f => ({
+          name: f.name,
+          description: f.description,
+          input_schema: f.parameters as Anthropic.Tool.InputSchema,
+        })),
+      });
+
+      const latencyMs = Date.now() - start;
+      const textContent = response.content.find(c => c.type === 'text');
+      const toolUse = response.content.find(c => c.type === 'tool_use');
+
+      return {
+        id: response.id,
+        content: textContent?.text ?? '',
+        model: response.model,
+        usage: {
+          inputTokens: response.usage.input_tokens,
+          outputTokens: response.usage.output_tokens,
+          totalTokens: response.usage.input_tokens + response.usage.output_tokens,
+        },
+        finishReason: response.stop_reason === 'end_turn' ? 'stop' : 
+                      response.stop_reason === 'max_tokens' ? 'length' :
+                      response.stop_reason === 'tool_use' ? 'function_call' : 'stop',
+        functionCall: toolUse && toolUse.type === 'tool_use' ? {
+          name: toolUse.name,
+          arguments: JSON.stringify(toolUse.input),
+        } : undefined,
+        latencyMs,
+      };
+    }, 'anthropic.chat');
+  }
+
+  async *chatStream(request: ChatCompletionRequest): AsyncIterable<StreamChunk> {
+    const systemMessage = request.messages.find(m => m.role === 'system')?.content;
+    const messages = request.messages
+      .filter(m => m.role !== 'system')
+      .map(m => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+      }));
+
+    const stream = this.client.messages.stream({
+      model: request.model,
+      system: systemMessage,
+      messages,
+      max_tokens: request.maxTokens ?? 4096,
+      temperature: request.temperature,
+    });
+
+    for await (const event of stream) {
+      if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+        yield { content: event.delta.text, done: false };
+      }
+      if (event.type === 'message_stop') {
+        const finalMessage = await stream.finalMessage();
+        yield {
+          content: '',
+          done: true,
+          usage: {
+            inputTokens: finalMessage.usage.input_tokens,
+            outputTokens: finalMessage.usage.output_tokens,
+            totalTokens: finalMessage.usage.input_tokens + finalMessage.usage.output_tokens,
+          },
+        };
+      }
+    }
+  }
+
+  async validateCredential(credential: any): Promise<ValidationResult> {
+    try {
+      const start = Date.now();
+      const client = new Anthropic({ apiKey: credential.apiKey });
+      
+      // Minimal API call
+      await client.messages.create({
+        model: 'claude-3-5-haiku-20241022',
+        max_tokens: 1,
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+      
+      return { valid: true, latencyMs: Date.now() - start };
+    } catch (error: any) {
+      return {
+        valid: false,
+        error: error.message,
+        latencyMs: 0,
+      };
+    }
+  }
+
+  async healthCheck(credential: any): Promise<{ ok: boolean; latencyMs: number; error?: string }> {
+    const result = await this.validateCredential(credential);
+    return { ok: result.valid, latencyMs: result.latencyMs, error: result.error };
+  }
+
+  async listModels(): Promise<ModelInfo[]> {
+    return Object.entries(AnthropicProvider.PRICING).map(([id, pricing]) => ({
+      id,
+      name: id.replace(/-\d+$/, '').replace(/-/g, ' '),
+      tier: id.includes('haiku') ? 'economy' as const : 
+            id.includes('opus') ? 'premium' as const : 'standard' as const,
+      costPer1kInputTokens: pricing.input,
+      costPer1kOutputTokens: pricing.output,
+      maxContextTokens: 200000,
+      capabilities: ['chat', 'code', 'vision', 'function-calling'],
+    }));
+  }
+
+  async getModelInfo(modelId: string): Promise<ModelInfo | null> {
+    const models = await this.listModels();
+    return models.find(m => m.id === modelId) ?? null;
+  }
+
+  async estimateTokens(text: string, _model: string): Promise<number> {
+    // Anthropic's tokenizer is roughly similar to cl100k_base
+    return Math.ceil(text.length / 4);
+  }
+
+  estimateCost(inputTokens: number, outputTokens: number, model: string): number {
+    const pricing = AnthropicProvider.PRICING[model] ?? 
+                    AnthropicProvider.PRICING['claude-3-5-sonnet-20241022'];
+    return (
+      (inputTokens / 1000) * pricing.input +
+      (outputTokens / 1000) * pricing.output
+    );
+  }
+
+  protected isNonRetryableError(error: unknown): boolean {
+    if (error instanceof Anthropic.AuthenticationError) return true;
+    if (error instanceof Anthropic.BadRequestError) return true;
+    if (error instanceof Anthropic.PermissionDeniedError) return true;
+    return false;
+  }
+}
+```
+
+### Provider Registry
+
+TypeScript
+
+```
+// packages/core/src/providers/registry.ts
+
+import { BaseAIProvider, AIProviderConfig } from './base';
+import { OpenAIProvider } from './openai';
+import { AnthropicProvider } from './anthropic';
+import { ProviderType, ProviderCapability } from '../models/types';
+
+type ProviderFactory = (config: AIProviderConfig) => BaseAIProvider;
+
+/**
+ * Registry for all available AI providers.
+ * Supports dynamic registration for plugin-based providers.
+ */
+export class ProviderRegistry {
+  private factories = new Map<ProviderType, ProviderFactory>();
+  private instances = new Map<string, BaseAIProvider>(); // keyed by contributionId
+
+  constructor() {
+    // Register built-in providers
+    this.registerFactory('openai', (cfg) => new OpenAIProvider(cfg));
+    this.registerFactory('anthropic', (cfg) => new AnthropicProvider(cfg));
+    // ... other built-in providers
+  }
+
+  /**
+   * Register a new provider factory.
+   * Used by plugins to add custom provider support.
+   */
+  registerFactory(type: ProviderType, factory: ProviderFactory): void {
+    this.factories.set(type, factory);
+  }
+
+  /**
+   * Get or create a provider instance for a specific contribution.
+   */
+  getOrCreateInstance(
+    contributionId: string, 
+    type: ProviderType, 
+    config: AIProviderConfig
+  ): BaseAIProvider {
+    const key = `${contributionId}:${type}`;
+    
+    if (!this.instances.has(key)) {
+      const factory = this.factories.get(type);
+      if (!factory) {
+        throw new Error(`No provider factory registered for type: ${type}`);
+      }
+      this.instances.set(key, factory(config));
+    }
+    
+    return this.instances.get(key)!;
+  }
+
+  /**
+   * Get a provider factory for credential validation (before instance creation).
+   */
+  getProvider(type: ProviderType): BaseAIProvider {
+    const factory = this.factories.get(type);
+    if (!factory) {
+      throw new Error(`No provider factory registered for type: ${type}`);
+    }
+    // Create a temporary instance for validation
+    return factory({ credential: {} });
+  }
+
+  /**
+   * List all registered provider types.
+   */
+  getRegisteredTypes(): ProviderType[] {
+    return Array.from(this.factories.keys());
+  }
+
+  /**
+   * Remove cached instance (e.g., on credential rotation).
+   */
+  invalidateInstance(contributionId: string): void {
+    for (const key of this.instances.keys()) {
+      if (key.startsWith(`${contributionId}:`)) {
+        this.instances.delete(key);
+      }
+    }
+  }
+}
+```
+
+---
+
+## 6\. Task Orchestration Engine
+
+TypeScript
+
+```
+// packages/core/src/engine/orchestrator.ts
+
+import { EventEmitter } from 'events';
+import { Task, TaskStatus, TaskType, TaskPriority, TaskResult, ProjectConfig } from '../models/types';
+import { BudgetManager } from '../budget/manager';
+import { ContributionGateway } from '../gateway/contribution-gateway';
+import { ProviderRegistry } from '../providers/registry';
+import { SecureVault } from '../security/vault';
+import { TaskScheduler } from './scheduler';
+import { TaskExecutor } from './executor';
+import { TaskDecomposer } from './task-decomposer';
+import { AuditLogger } from '../security/audit';
+
+export class Orchestrator extends EventEmitter {
+  private scheduler: TaskScheduler;
+  private executor: TaskExecutor;
+  private decomposer: TaskDecomposer;
+  private running = false;
+  private processingLoop: NodeJS.Timeout | null = null;
+
+  constructor(
+    private config: ProjectConfig,
+    private contributionGateway: ContributionGateway,
+    private budgetManager: BudgetManager,
+    private providerRegistry: ProviderRegistry,
+    private vault: SecureVault,
+    private auditLogger: AuditLogger,
+    private taskStore: TaskStore,
+  ) {
+    super();
+    this.scheduler = new TaskScheduler(config.taskPolicies);
+    this.executor = new TaskExecutor(providerRegistry, vault, auditLogger);
+    this.decomposer = new TaskDecomposer();
+  }
+
+  /**
+   * Submit a new task to the orchestration engine.
+   */
+  async submitTask(task: Omit<Task, 'id' | 'status' | 'attemptCount' | 'childTaskIds' | 'createdAt'>): Promise<Task> {
+    const fullTask: Task = {
+      ...task,
+      id: nanoid(),
+      status: 'pending',
+      attemptCount: 0,
+      childTaskIds: [],
+      createdAt: new Date(),
+      maxAttempts: task.maxAttempts ?? this.config.taskPolicies.maxRetries + 1,
+    };
+
+    // Estimate cost
+    const estimation = await this.estimateTaskCost(fullTask);
+    fullTask.estimatedTokens = estimation.tokens;
+    fullTask.estimatedCostUSD = estimation.costUSD;
+
+    // Check if task needs human approval (for expensive tasks)
+    if (fullTask.estimatedCostUSD > this.config.taskPolicies.requireApprovalAboveUSD) {
+      fullTask.status = 'pending';
+      fullTask.requirements.requiresHumanReview = true;
+      this.emit('task:approval-required', fullTask);
+    } else {
+      fullTask.status = 'queued';
+    }
+
+    // Decompose complex tasks into subtasks
+    const subtasks = await this.decomposer.decompose(fullTask);
+    if (subtasks.length > 1) {
+      for (const subtask of subtasks) {
+        subtask.parentTaskId = fullTask.id;
+        await this.taskStore.save(subtask);
+        fullTask.childTaskIds.push(subtask.id);
+      }
+    }
+
+    await this.taskStore.save(fullTask);
+    this.scheduler.enqueue(fullTask);
+
+    this.emit('task:submitted', fullTask);
+    this.auditLogger.log({
+      action: 'task.submitted',
+      taskId: fullTask.id,
+      taskType: fullTask.type,
+      estimatedCostUSD: fullTask.estimatedCostUSD,
+    });
+
+    return fullTask;
+  }
+
+  /**
+   * Start the orchestration loop.
+   */
+  async start(): Promise<void> {
+    if (this.running) return;
+    this.running = true;
+    
+    console.log('🚀 ACE Orchestrator started');
+    this.emit('orchestrator:started');
+
+    // Process loop
+    this.processingLoop = setInterval(() => this.processNext(), 2000);
+    
+    // Health check loop
+    setInterval(() => this.contributionGateway.healthCheckAll(), 5 * 60 * 1000);
+    
+    // Budget reset loop
+    setInterval(() => this.budgetManager.resetDailyBudgets(), 60 * 1000);
+  }
+
+  /**
+   * Process the next task in the queue.
+   */
+  private async processNext(): Promise<void> {
+    if (!this.running) return;
+
+    const concurrentTasks = await this.taskStore.countByStatus('running');
+    if (concurrentTasks >= this.config.taskPolicies.maxConcurrentTasks) {
+      return; // At capacity
+    }
+
+    const task = this.scheduler.dequeue();
+    if (!task) return;
+
+    try {
+      // 1. Find the best contribution to fund this task
+      const allocation = await this.allocateContribution(task);
+      if (!allocation) {
+        // No contributions available - requeue with delay
+        this.scheduler.enqueue(task, { delayMs: 30000 });
+        this.emit('task:no-budget', task);
+        return;
+      }
+
+      // 2. Select the optimal model
+      const model = await this.selectModel(task, allocation);
+
+      // 3. Update task status
+      task.status = 'running';
+      task.assignedContribution = allocation.contribution.id;
+      task.assignedModel = model.id;
+      task.startedAt = new Date();
+      task.attemptCount++;
+      await this.taskStore.save(task);
+      
+      this.emit('task:started', task);
+
+      // 4. Execute the task
+      const result = await this.executor.execute(task, allocation, model);
+
+      // 5. Record result and update budget
+      task.result = result;
+      task.status = result.success ? 'completed' : 'failed';
+      task.completedAt = new Date();
+      task.actualTokens = result.tokensUsed.total;
+      task.actualCostUSD = result.costUSD;
+
+      await this.budgetManager.recordSpend(
+        allocation.contribution.id,
+        result.costUSD,
+        result.tokensUsed.total
+      );
+      
+      await this.taskStore.save(task);
+
+      this.auditLogger.log({
+        action: 'task.completed',
+        taskId: task.id,
+        contributionId: allocation.contribution.id,
+        contributorId: allocation.contribution.contributorId,
+        provider: allocation.contribution.provider,
+        model: model.id,
+        tokensUsed: result.tokensUsed.total,
+        costUSD: result.costUSD,
+        success: result.success,
+      });
+
+      this.emit('task:completed', task);
+
+      // 6. Handle quality gates
+      if (result.success && this.config.qualityGates.requireReviewForCodeChanges && result.codeChanges?.length) {
+        this.emit('task:review-required', task);
+      }
+
+    } catch (error) {
+      task.status = 'failed';
+      task.lastError = error instanceof Error ? error.message : 'Unknown error';
+      
+      if (task.attemptCount < task.maxAttempts && this.config.taskPolicies.autoRetryOnFailure) {
+        task.status = 'retrying';
+        this.scheduler.enqueue(task, { 
+          delayMs: Math.pow(2, task.attemptCount) * 5000 
+        });
+      }
+      
+      await this.taskStore.save(task);
+      this.emit('task:failed', task, error);
+    }
+  }
+
+  /**
+   * Allocate a contribution to fund a task based on the project's allocation strategy.
+   */
+  private async allocateContribution(task: Task): Promise<ContributionAllocation | null> {
+    const available = await this.contributionGateway.getAvailableContributions(
+      task.type,
+      task.requirements.minModelTier,
+      task.estimatedCostUSD
+    );
+
+    if (available.length === 0) return null;
+
+    switch (this.config.allocationStrategy) {
+      case 'round-robin':
+        return this.roundRobinAllocation(available, task);
+      
+      case 'proportional':
+        return this.proportionalAllocation(available, task);
+      
+      case 'cost-optimized':
+        return this.costOptimizedAllocation(available, task);
+      
+      case 'priority-based':
+        return this.priorityBasedAllocation(available, task);
+      
+      default:
+        return { contribution: available[0] };
+    }
+  }
+
+  /**
+   * Round-robin: distribute tasks evenly across contributions.
+   */
+  private async roundRobinAllocation(
+    available: AIContribution[], 
+    _task: Task
+  ): Promise<ContributionAllocation> {
+    // Sort by least recently used
+    const sorted = available.sort((a, b) => {
+      const aLastUsed = this.lastUsedMap.get(a.id) ?? 0;
+      const bLastUsed = this.lastUsedMap.get(b.id) ?? 0;
+      return aLastUsed - bLastUsed;
+    });
+    
+    const selected = sorted[0];
+    this.lastUsedMap.set(selected.id, Date.now());
+    return { contribution: selected };
+  }
+  private lastUsedMap = new Map<string, number>();
+
+  /**
+   * Proportional: allocate based on budget size (bigger budget = more tasks).
+   */
+  private async proportionalAllocation(
+    available: AIContribution[],
+    _task: Task
+  ): Promise<ContributionAllocation> {
+    const totalBudget = available.reduce(
+      (sum, c) => sum + c.budget.maxMonthlySpendUSD, 0
+    );
+    
+    // Weighted random selection
+    const rand = Math.random() * totalBudget;
+    let cumulative = 0;
+    
+    for (const contribution of available) {
+      cumulative += contribution.budget.maxMonthlySpendUSD * 
+        contribution.preferences.priorityMultiplier;
+      if (rand <= cumulative) {
+        return { contribution };
+      }
+    }
+    
+    return { contribution: available[available.length - 1] };
+  }
+
+  /**
+   * Cost-optimized: use the cheapest provider that meets requirements.
+   */
+  private async costOptimizedAllocation(
+    available: AIContribution[],
+    task: Task
+  ): Promise<ContributionAllocation> {
+    // Sort by cost efficiency
+    const withCosts = await Promise.all(
+      available.map(async (contribution) => {
+        const provider = this.providerRegistry.getProvider(contribution.provider);
+        const models = await provider.listModels();
+        const cheapestModel = models
+          .filter(m => this.meetsRequirements(m, task.requirements))
+          .sort((a, b) => a.costPer1kInputTokens - b.costPer1kInputTokens)[0];
+        
+        return { contribution, cheapestModel, cost: cheapestModel?.costPer1kInputTokens ?? Infinity };
+      })
+    );
+
+    const best = withCosts.sort((a, b) => a.cost - b.cost)[0];
+    return { 
+      contribution: best.contribution,
+      preferredModel: best.cheapestModel?.id,
+    };
+  }
+
+  /**
+   * Priority-based: use highest-priority contributions first.
+   */
+  private async priorityBasedAllocation(
+    available: AIContribution[],
+    _task: Task
+  ): Promise<ContributionAllocation> {
+    const sorted = available.sort(
+      (a, b) => b.preferences.priorityMultiplier - a.preferences.priorityMultiplier
+    );
+    return { contribution: sorted[0] };
+  }
+
+  /**
+   * Select the optimal model for a task.
+   */
+  private async selectModel(
+    task: Task, 
+    allocation: ContributionAllocation
+  ): Promise<ModelInfo> {
+    const provider = this.providerRegistry.getProvider(allocation.contribution.provider);
+    const models = await provider.listModels();
+    
+    // Filter by requirements
+    const eligible = models.filter(m => this.meetsRequirements(m, task.requirements));
+    
+    if (eligible.length === 0) {
+      throw new Error(`No eligible models found for task ${task.id}`);
+    }
+
+    // Prefer contributor's preferred models
+    const preferred = allocation.contribution.preferences.preferredModels;
+    if (preferred?.length) {
+      const preferredModel = eligible.find(m => preferred.includes(m.id));
+      if (preferredModel) return preferredModel;
+    }
+
+    // Use allocation hint
+    if (allocation.preferredModel) {
+      const hinted = eligible.find(m => m.id === allocation.preferredModel);
+      if (hinted) return hinted;
+    }
+
+    // Default: best cost/capability ratio for the task
+    return this.rankModelsForTask(eligible, task)[0];
+  }
+
+  private meetsRequirements(model: ModelInfo, req: TaskRequirements): boolean {
+    const tierOrder = { economy: 1, standard: 2, premium: 3 };
+    if (tierOrder[model.tier] < tierOrder[req.minModelTier]) return false;
+    
+    for (const cap of req.requiredCapabilities) {
+      if (!model.capabilities.includes(cap)) return false;
+    }
+    
+    if (req.minContextWindow && model.maxContextTokens < req.minContextWindow) {
+      return false;
+    }
+    
+    return true;
+  }
+
+  private rankModelsForTask(models: ModelInfo[], task: Task): ModelInfo[] {
+    // Scoring: balance cost vs capability
+    return models.sort((a, b) => {
+      // For complex tasks, prefer more capable models
+      const complexityWeight = task.priority === 'critical' ? 0.3 : 0.7;
+      
+      const aCostScore = 1 / (a.costPer1kInputTokens + a.costPer1kOutputTokens);
+      const bCostScore = 1 / (b.costPer1kInputTokens + b.costPer1kOutputTokens);
+      
+      const aCapScore = a.capabilities.length + (a.maxContextTokens / 100000);
+      const bCapScore = b.capabilities.length + (b.maxContextTokens / 100000);
+      
+      const aScore = aCostScore * complexityWeight + aCapScore * (1 - complexityWeight);
+      const bScore = bCostScore * complexityWeight + bCapScore * (1 - complexityWeight);
+      
+      return bScore - aScore;
+    });
+  }
+
+  private async estimateTaskCost(task: Task): Promise<{ tokens: number; costUSD: number }> {
+    // Rough estimation based on task type
+    const tokenEstimates: Record<TaskType, { input: number; output: number }> = {
+      'code-generation':   { input: 4000,  output: 2000 },
+      'pr-review':         { input: 8000,  output: 1500 },
+      'documentation':     { input: 3000,  output: 3000 },
+      'test-generation':   { input: 5000,  output: 3000 },
+      'bug-triage':        { input: 3000,  output: 1000 },
+      'refactoring':       { input: 6000,  output: 4000 },
+      'translation':       { input: 2000,  output: 2000 },
+      'code-explanation':  { input: 3000,  output: 2000 },
+      'security-audit':    { input: 8000,  output: 3000 },
+      'dependency-update': { input: 2000,  output: 1000 },
+      'issue-analysis':    { input: 3000,  output: 1500 },
+      'custom':            { input: 4000,  output: 2000 },
+    };
+
+    const estimate = tokenEstimates[task.type] ?? tokenEstimates['custom'];
+    
+    // Adjust by context size
+    const contextTokens = task.context.files.reduce(
+      (sum, f) => sum + Math.ceil(f.content.length / 4), 0
+    );
+    
+    const inputTokens = estimate.input + contextTokens;
+    const outputTokens = estimate.output;
+    
+    // Use mid-tier pricing for estimation
+    const costUSD = (inputTokens / 1000) * 0.003 + (outputTokens / 1000) * 0.015;
+
+    return {
+      tokens: inputTokens + outputTokens,
+      costUSD,
+    };
+  }
+
+  async stop(): Promise<void> {
+    this.running = false;
+    if (this.processingLoop) {
+      clearInterval(this.processingLoop);
+    }
+    this.emit('orchestrator:stopped');
+  }
+}
+
+interface ContributionAllocation {
+  contribution: AIContribution;
+  preferredModel?: string;
+}
+
+export interface TaskStore {
+  save(task: Task): Promise<void>;
+  get(id: string): Promise<Task | null>;
+  getByStatus(status: TaskStatus): Promise<Task[]>;
+  countByStatus(status: TaskStatus): Promise<number>;
+  getByProject(projectId: string): Promise<Task[]>;
+}
+```
+
+---
+
+## 7\. Token Budget Manager
+
+TypeScript
+
+```
+// packages/core/src/budget/manager.ts
+
+import { EventEmitter } from 'events';
+import { AIContribution, BudgetConfig } from '../models/types';
+import { AuditLogger } from '../security/audit';
+
+interface BudgetState {
+  contributionId: string;
+  config: BudgetConfig;
+  
+  // Tracked usage
+  monthlySpendUSD: number;
+  monthlyTokens: number;
+  dailySpendUSD: number;
+  dailyTokens: number;
+  
+  // Timestamps
+  lastDailyReset: Date;
+  lastMonthlyReset: Date;
+}
+
+export class BudgetManager extends EventEmitter {
+  private budgets = new Map<string, BudgetState>();
+  
+  constructor(private auditLogger: AuditLogger) {
+    super();
+  }
+
+  async registerBudget(contribution: AIContribution): Promise<void> {
+    this.budgets.set(contribution.id, {
+      contributionId: contribution.id,
+      config: contribution.budget,
+      monthlySpendUSD: contribution.budget.currentMonthSpendUSD,
+      monthlyTokens: contribution.budget.currentMonthTokens,
+      dailySpendUSD: contribution.budget.currentDaySpendUSD,
+      dailyTokens: contribution.budget.currentDayTokens,
+      lastDailyReset: new Date(),
+      lastMonthlyReset: contribution.budget.billingCycleStart,
+    });
+  }
+
+  async updateBudget(contribution: AIContribution): Promise<void> {
+    const state = this.budgets.get(contribution.id);
+    if (state) {
+      state.config = contribution.budget;
+    }
+  }
+
+  /**
+   * Check if a contribution can afford a given cost.
+   */
+  canAfford(contributionId: string, costUSD: number): boolean {
+    const state = this.budgets.get(contributionId);
+    if (!state) return false;
+
+    // Check daily limit
+    if (state.config.maxDailySpendUSD !== undefined) {
+      if (state.dailySpendUSD + costUSD > state.config.maxDailySpendUSD) {
+        return false;
+      }
+    }
+
+    // Check monthly limit
+    if (state.monthlySpendUSD + costUSD > state.config.maxMonthlySpendUSD) {
+      return false;
+    }
+
+    // Check per-task limit
+    if (state.config.maxPerTaskSpendUSD !== undefined) {
+      if (costUSD > state.config.maxPerTaskSpendUSD) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Pre-allocate budget for a task (optimistic locking).
+   */
+  async reserveBudget(
+    contributionId: string, 
+    estimatedCostUSD: number,
+    estimatedTokens: number
+  ): Promise<BudgetReservation | null> {
+    const state = this.budgets.get(contributionId);
+    if (!state || !this.canAfford(contributionId, estimatedCostUSD)) {
+      return null;
+    }
+
+    // Optimistic reservation
+    state.dailySpendUSD += estimatedCostUSD;
+    state.monthlySpendUSD += estimatedCostUSD;
+    state.dailyTokens += estimatedTokens;
+    state.monthlyTokens += estimatedTokens;
+
+    const reservation: BudgetReservation = {
+      id: `res_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      contributionId,
+      estimatedCostUSD,
+      estimatedTokens,
+      createdAt: new Date(),
+    };
+
+    return reservation;
+  }
+
+  /**
+   * Finalize a reservation with actual spend.
+   */
+  async finalizeReservation(
+    reservation: BudgetReservation,
+    actualCostUSD: number,
+    actualTokens: number
+  ): Promise<void> {
+    const state = this.budgets.get(reservation.contributionId);
+    if (!state) return;
+
+    // Adjust for difference between estimated and actual
+    const costDiff = actualCostUSD - reservation.estimatedCostUSD;
+    const tokenDiff = actualTokens - reservation.estimatedTokens;
+
+    state.dailySpendUSD += costDiff;
+    state.monthlySpendUSD += costDiff;
+    state.dailyTokens += tokenDiff;
+    state.monthlyTokens += tokenDiff;
+
+    // Check alert thresholds
+    this.checkAlertThresholds(state);
+  }
+
+  /**
+   * Record actual spend (without prior reservation).
+   */
+  async recordSpend(
+    contributionId: string,
+    costUSD: number,
+    tokens: number
+  ): Promise<void> {
+    const state = this.budgets.get(contributionId);
+    if (!state) return;
+
+    state.dailySpendUSD += costUSD;
+    state.monthlySpendUSD += costUSD;
+    state.dailyTokens += tokens;
+    state.monthlyTokens += tokens;
+
+    this.auditLogger.log({
+      action: 'budget.spend',
+      contributionId,
+      costUSD,
+      tokens,
+      remainingMonthlyUSD: state.config.maxMonthlySpendUSD - state.monthlySpendUSD,
+    });
+
+    this.checkAlertThresholds(state);
+  }
+
+  /**
+   * Reset daily budgets for all contributions.
+   */
+  async resetDailyBudgets(): Promise<void> {
+    const now = new Date();
+    
+    for (const [id, state] of this.budgets) {
+      // Check if daily reset is needed
+      if (this.isDifferentDay(state.lastDailyReset, now)) {
+        state.dailySpendUSD = 0;
+        state.dailyTokens = 0;
+        state.lastDailyReset = now;
+      }
+
+      // Check if monthly reset is needed
+      if (this.isDifferentMonth(state.lastMonthlyReset, now)) {
+        state.monthlySpendUSD = 0;
+        state.monthlyTokens = 0;
+        state.lastMonthlyReset = now;
+        this.emit('budget:monthly-reset', id);
+      }
+    }
+  }
+
+  /**
+   * Get budget summary for a contribution.
+   */
+  getBudgetSummary(contributionId: string): BudgetSummary | null {
+    const state = this.budgets.get(contributionId);
+    if (!state) return null;
+
+    return {
+      contributionId,
+      monthly: {
+        spent: state.monthlySpendUSD,
+        limit: state.config.maxMonthlySpendUSD,
+        remaining: state.config.maxMonthlySpendUSD - state.monthlySpendUSD,
+        percentUsed: (state.monthlySpendUSD / state.config.maxMonthlySpendUSD) * 100,
+      },
+      daily: state.config.maxDailySpendUSD ? {
+        spent: state.dailySpendUSD,
+        limit: state.config.maxDailySpendUSD,
+        remaining: state.config.maxDailySpendUSD - state.dailySpendUSD,
+        percentUsed: (state.dailySpendUSD / state.config.maxDailySpendUSD) * 100,
+      } : undefined,
+      tokens: {
+        monthlyUsed: state.monthlyTokens,
+        monthlyLimit: state.config.maxMonthlyTokens,
+        dailyUsed: state.dailyTokens,
+        dailyLimit: state.config.maxDailyTokens,
+      },
+    };
+  }
+
+  /**
+   * Get aggregate pool stats across all contributions.
+   */
+  getPoolStats(): PoolStats {
+    let totalMonthlyBudget = 0;
+    let totalMonthlySpent = 0;
+    let activeContributions = 0;
+    let totalDailyRemaining = 0;
+    const providerBreakdown: Record<string, number> = {};
+
+    for (const state of this.budgets.values()) {
+      totalMonthlyBudget += state.config.maxMonthlySpendUSD;
+      totalMonthlySpent += state.monthlySpendUSD;
+      activeContributions++;
+      totalDailyRemaining += (state.config.maxDailySpendUSD ?? state.config.maxMonthlySpendUSD / 30) - state.dailySpendUSD;
+    }
+
+    return {
+      totalMonthlyBudget,
+      totalMonthlySpent,
+      totalMonthlyRemaining: totalMonthlyBudget - totalMonthlySpent,
+      activeContributions,
+      estimatedDailyCapacity: totalDailyRemaining,
+      percentUsed: totalMonthlyBudget > 0 
+        ? (totalMonthlySpent / totalMonthlyBudget) * 100 
+        : 0,
+    };
+  }
+
+  private checkAlertThresholds(state: BudgetState): void {
+    const percentUsed = state.monthlySpendUSD / state.config.maxMonthlySpendUSD;
+    
+    for (const threshold of state.config.alertThresholds) {
+      if (percentUsed >= threshold) {
+        this.emit('budget:threshold-reached', {
+          contributionId: state.contributionId,
+          threshold,
+          percentUsed: percentUsed * 100,
+          spent: state.monthlySpendUSD,
+          limit: state.config.maxMonthlySpendUSD,
+        });
+      }
+    }
+
+    // Auto-pause if exhausted
+    if (percentUsed >= 1.0) {
+      this.emit('budget:exhausted', state.contributionId);
+    }
+  }
+
+  private isDifferentDay(a: Date, b: Date): boolean {
+    return a.toDateString() !== b.toDateString();
+  }
+
+  private isDifferentMonth(a: Date, b: Date): boolean {
+    return a.getMonth() !== b.getMonth() || a.getFullYear() !== b.getFullYear();
+  }
+}
+
+export interface BudgetReservation {
+  id: string;
+  contributionId: string;
+  estimatedCostUSD: number;
+  estimatedTokens: number;
+  createdAt: Date;
+}
+
+export interface BudgetSummary {
+  contributionId: string;
+  monthly: {
+    spent: number;
+    limit: number;
+    remaining: number;
+    percentUsed: number;
+  };
+  daily?: {
+    spent: number;
+    limit: number;
+    remaining: number;
+    percentUsed: number;
+  };
+  tokens: {
+    monthlyUsed: number;
+    monthlyLimit?: number;
+    dailyUsed: number;
+    dailyLimit?: number;
+  };
+}
+
+export interface PoolStats {
+  totalMonthlyBudget: number;
+  totalMonthlySpent: number;
+  totalMonthlyRemaining: number;
+  activeContributions: number;
+  estimatedDailyCapacity: number;
+  percentUsed: number;
+}
+```
+
+---
+
+## 8\. Work Distribution Pipeline
+
+### Task Executor
+
+TypeScript
+
+```
+// packages/core/src/engine/executor.ts
+
+import { Task, TaskResult, TaskType } from '../models/types';
+import { BaseAIProvider, ChatMessage } from '../providers/base';
+import { ProviderRegistry } from '../providers/registry';
+import { SecureVault } from '../security/vault';
+import { AuditLogger } from '../security/audit';
+import { PromptBuilder } from './prompt-builder';
+
+export class TaskExecutor {
+  private promptBuilder: PromptBuilder;
+
+  constructor(
+    private providerRegistry: ProviderRegistry,
+    private vault: SecureVault,
+    private auditLogger: AuditLogger,
+  ) {
+    this.promptBuilder = new PromptBuilder();
+  }
+
+  async execute(
+    task: Task,
+    allocation: { contribution: AIContribution; preferredModel?: string },
+    model: ModelInfo
+  ): Promise<TaskResult> {
+    // 1. Get provider instance
+    const credential = await this.vault.getSecret(allocation.contribution.credentialRef);
+    const provider = this.providerRegistry.getOrCreateInstance(
+      allocation.contribution.id,
+      allocation.contribution.provider,
+      { credential }
+    );
+
+    // 2. Build prompt
+    const messages = this.promptBuilder.build(task);
+
+    // 3. Execute with the provider
+    const start = Date.now();
+    
+    const response = await provider.chat({
+      messages,
+      model: model.id,
+      temperature: this.getTemperature(task.type),
+      maxTokens: this.getMaxTokens(task.type),
+      responseFormat: task.type === 'bug-triage' ? { type: 'json_object' } : undefined,
+    });
+
+    const latencyMs = Date.now() - start;
+
+    // 4. Parse and structure the result
+    const result = this.parseResult(task, response);
+    
+    // 5. Calculate actual cost
+    const costUSD = provider.estimateCost(
+      response.usage.inputTokens,
+      response.usage.outputTokens,
+      model.id
+    );
+
+    return {
+      ...result,
+      model: model.id,
+      provider: allocation.contribution.provider,
+      tokensUsed: response.usage,
+      costUSD,
+      latencyMs,
+    };
+  }
+
+  private parseResult(task: Task, response: ChatCompletionResponse): Partial<TaskResult> {
+    const content = response.content;
+
+    switch (task.type) {
+      case 'code-generation':
+      case 'refactoring':
+        return this.parseCodeResult(content);
+      
+      case 'pr-review':
+        return this.parsePRReviewResult(content);
+      
+      case 'test-generation':
+        return this.parseTestResult(content);
+      
+      case 'bug-triage':
+        return this.parseBugTriageResult(content);
+      
+      default:
+        return {
+          success: true,
+          output: content,
+          confidence: 0.7,
+        };
+    }
+  }
+
+  private parseCodeResult(content: string): Partial<TaskResult> {
+    // Extract code blocks and file paths
+    const codeBlockRegex = /```(?:(\w+)\n)?(?:\/\/\s*file:\s*(.+)\n)?([\s\S]*?)```/g;
+    const codeChanges: TaskResult['codeChanges'] = [];
+    
+    let match;
+    while ((match = codeBlockRegex.exec(content)) !== null) {
+      const [, language, filePath, code] = match;
+      if (filePath && code.trim()) {
+        codeChanges.push({
+          filePath: filePath.trim(),
+          operation: 'modify',
+          content: code.trim(),
+        });
+      }
+    }
+
+    return {
+      success: true,
+      output: content,
+      codeChanges: codeChanges.length > 0 ? codeChanges : undefined,
+      confidence: codeChanges.length > 0 ? 0.8 : 0.6,
+    };
+  }
+
+  private parsePRReviewResult(content: string): Partial<TaskResult> {
+    // Parse structured review output
+    const hasApproval = /(?:LGTM|approve|looks good)/i.test(content);
+    const hasIssues = /(?:issue|bug|problem|concern|suggestion)/i.test(content);
+    
+    return {
+      success: true,
+      output: content,
+      structuredOutput: {
+        approved: hasApproval && !hasIssues,
+        hasIssues,
+        reviewBody: content,
+      },
+      confidence: 0.75,
+    };
+  }
+
+  private parseTestResult(content: string): Partial<TaskResult> {
+    const codeBlockRegex = /```(?:\w+\n)?([\s\S]*?)```/g;
+    const testCode: string[] = [];
+    
+    let match;
+    while ((match = codeBlockRegex.exec(content)) !== null) {
+      testCode.push(match[1].trim());
+    }
+
+    return {
+      success: testCode.length > 0,
+      output: content,
+      codeChanges: testCode.length > 0 ? [{
+        filePath: 'tests/generated.test.ts',
+        operation: 'create',
+        content: testCode.join('\n\n'),
+      }] : undefined,
+      confidence: 0.7,
+    };
+  }
+
+  private parseBugTriageResult(content: string): Partial<TaskResult> {
+    try {
+      const structured = JSON.parse(content);
+      return {
+        success: true,
+        output: content,
+        structuredOutput: structured,
+        confidence: 0.8,
+      };
+    } catch {
+      return {
+        success: true,
+        output: content,
+        confidence: 0.6,
+      };
+    }
+  }
+
+  private getTemperature(taskType: TaskType): number {
+    const temps: Record<TaskType, number> = {
+      'code-generation': 0.3,
+      'pr-review': 0.2,
+      'documentation': 0.5,
+      'test-generation': 0.3,
+      'bug-triage': 0.1,
+      'refactoring': 0.2,
+      'translation': 0.3,
+      'code-explanation': 0.5,
+      'security-audit': 0.1,
+      'dependency-update': 0.1,
+      'issue-analysis': 0.3,
+      'custom': 0.4,
+    };
+    return temps[taskType] ?? 0.3;
+  }
+
+  private getMaxTokens(taskType: TaskType): number {
+    const maxTokens: Record<TaskType, number> = {
+      'code-generation': 4096,
+      'pr-review': 2048,
+      'documentation': 4096,
+      'test-generation': 4096,
+      'bug-triage': 1024,
+      'refactoring': 4096,
+      'translation': 4096,
+      'code-explanation': 2048,
+      'security-audit': 4096,
+      'dependency-update': 2048,
+      'issue-analysis': 2048,
+      'custom': 4096,
+    };
+    return maxTokens[taskType] ?? 4096;
+  }
+}
+```
+
+### Prompt Builder
+
+TypeScript
+
+```
+// packages/core/src/engine/prompt-builder.ts
+
+import { Task, TaskType } from '../models/types';
+import { ChatMessage } from '../providers/base';
+
+export class PromptBuilder {
+  private templates = new Map<TaskType, PromptTemplate>();
+
+  constructor() {
+    this.registerDefaultTemplates();
+  }
+
+  registerTemplate(taskType: TaskType, template: PromptTemplate): void {
+    this.templates.set(taskType, template);
+  }
+
+  build(task: Task): ChatMessage[] {
+    const template = this.templates.get(task.type);
+    if (!template) {
+      return this.buildGenericPrompt(task);
+    }
+    return template.build(task);
+  }
+
+  private registerDefaultTemplates(): void {
+    this.templates.set('code-generation', {
+      build: (task: Task) => [
+        {
+          role: 'system',
+          content: `You are an expert software engineer contributing to an open-source project.
+Repository: ${task.context.repository.owner}/${task.context.repository.name}
+Primary Language: ${task.context.repository.language}
+Frameworks: ${task.context.repository.frameworks.join(', ')}
+
+${task.context.conventions?.codeStyle ? `Code Style: ${task.context.conventions.codeStyle}` : ''}
+${task.context.conventions?.architecture ? `Architecture: ${task.context.conventions.architecture}` : ''}
+
+Guidelines:
+- Write clean, well-documented, production-ready code
+- Follow the project's existing patterns and conventions
+- Include inline comments for complex logic
+- Mark each code block with the file path: \`// file: path/to/file.ext\`
+- Consider edge cases and error handling`,
+        },
+        ...task.context.files.map(f => ({
+          role: 'user' as const,
+          content: `File: ${f.path}\n\`\`\`${f.language}\n${f.content}\n\`\`\``,
+        })),
+        {
+          role: 'user',
+          content: `Task: ${task.title}\n\n${task.description}`,
+        },
+      ],
+    });
+
+    this.templates.set('pr-review', {
+      build: (task: Task) => [
+        {
+          role: 'system',
+          content: `You are a thorough code reviewer for the ${task.context.repository.owner}/${task.context.repository.name} project.
+
+Provide a detailed code review covering:
+1. **Correctness**: Logic errors, edge cases, potential bugs
+2. **Security**: Vulnerabilities, injection risks, authentication issues
+3. **Performance**: Inefficiencies, N+1 queries, memory leaks
+4. **Maintainability**: Code clarity, naming, SOLID principles
+5. **Testing**: Missing test coverage, edge cases
+6. **Style**: Consistency with project conventions
+
+Format your review as:
+- 🔴 Critical issues (must fix)
+- 🟡 Suggestions (should consider)
+- 🟢 Positive observations
+- Overall verdict: APPROVE / REQUEST_CHANGES / COMMENT`,
+        },
+        {
+          role: 'user',
+          content: `PR #${task.context.pullRequest?.number}: ${task.context.pullRequest?.title}
+
+Description: ${task.context.pullRequest?.body}
+
+Diff:
+\`\`\`diff
+${task.context.pullRequest?.diff}
+\`\`\``,
+        },
+      ],
+    });
+
+    this.templates.set('test-generation', {
+      build: (task: Task) => [
+        {
+          role: 'system',
+          content: `You are a test engineer for ${task.context.repository.owner}/${task.context.repository.name}.
+${task.context.conventions?.testingStrategy ? `Testing Strategy: ${task.context.conventions.testingStrategy}` : ''}
+
+Write comprehensive tests that cover:
+- Happy path scenarios
+- Edge cases and boundary conditions
+- Error handling and failure modes
+- Integration points (if applicable)
+
+Use the project's existing test framework and patterns.
+Each test should be independent and clearly named.`,
+        },
+        ...task.context.files.map(f => ({
+          role: 'user' as const,
+          content: `Source file to test: ${f.path}\n\`\`\`${f.language}\n${f.content}\n\`\`\``,
+        })),
+        {
+          role: 'user',
+          content: `Generate comprehensive tests for the above code.\n\n${task.description}`,
+        },
+      ],
+    });
+
+    this.templates.set('bug-triage', {
+      build: (task: Task) => [
+        {
+          role: 'system',
+          content: `You are a bug triage specialist for ${task.context.repository.owner}/${task.context.repository.name}.
+
+Analyze the reported issue and provide a structured JSON response:
+{
+  "severity": "critical|high|medium|low",
+  "category": "bug|feature|enhancement|question|documentation",
+  "component": "string - affected component/module",
+  "rootCause": "string - likely root cause analysis",
+  "reproductionSteps": ["step1", "step2"],
+  "suggestedFix": "string - high-level fix description",
+  "relatedIssues": ["#123", "#456"],
+  "estimatedEffort": "trivial|small|medium|large|xlarge",
+  "labels": ["label1", "label2"],
+  "assignmentSuggestion": "string - who should fix this"
+}`,
+        },
+        {
+          role: 'user',
+          content: `Issue #${task.context.issue?.number}: ${task.context.issue?.title}
+
+${task.context.issue?.body}
+
+Labels: ${task.context.issue?.labels.join(', ')}
+
+Comments:
+${task.context.issue?.comments.map(c => `@${c.author}: ${c.body}`).join('\n\n')}`,
+        },
+      ],
+    });
+
+    this.templates.set('documentation', {
+      build: (task: Task) => [
+        {
+          role: 'system',
+          content: `You are a technical writer for ${task.context.repository.owner}/${task.context.repository.name}.
+
+Write clear, comprehensive documentation that includes:
+- Overview and purpose
+- Installation/setup instructions (if applicable)
+- API reference with examples
+- Usage examples
+- Common patterns and best practices
+- Troubleshooting section
+
+Use Markdown formatting. Be concise but thorough.`,
+        },
+        ...task.context.files.map(f => ({
+          role: 'user' as const,
+          content: `Source: ${f.path}\n\`\`\`${f.language}\n${f.content}\n\`\`\``,
+        })),
+        {
+          role: 'user',
+          content: task.description,
+        },
+      ],
+    });
+
+    this.templates.set('security-audit', {
+      build: (task: Task) => [
+        {
+          role: 'system',
+          content: `You are a security engineer auditing ${task.context.repository.owner}/${task.context.repository.name}.
+
+Perform a thorough security review covering:
+1. **Injection Attacks**: SQL injection, XSS, command injection, path traversal
+2. **Authentication & Authorization**: Broken auth, privilege escalation, IDOR
+3. **Data Exposure**: Sensitive data in logs, hardcoded secrets, PII leakage
+4. **Cryptography**: Weak algorithms, improper key management
+5. **Dependencies**: Known vulnerabilities in dependencies
+6. **Configuration**: Insecure defaults, debug mode, CORS
+7. **Input Validation**: Missing or insufficient validation
+8. **Error Handling**: Information disclosure through errors
+
+Rate each finding:
+- 🔴 CRITICAL: Actively exploitable, immediate action needed
+- 🟠 HIGH: Significant risk, fix soon
+- 🟡 MEDIUM: Moderate risk, plan to fix
+- 🔵 LOW: Minor risk, nice to fix
+- ℹ️ INFO: Best practice suggestion`,
+        },
+        ...task.context.files.map(f => ({
+          role: 'user' as const,
+          content: `File: ${f.path}\n\`\`\`${f.language}\n${f.content}\n\`\`\``,
+        })),
+        {
+          role: 'user',
+          content: task.description || 'Perform a comprehensive security audit of the above code.',
+        },
+      ],
+    });
+  }
+
+  private buildGenericPrompt(task: Task): ChatMessage[] {
+    return [
+      {
+        role: 'system',
+        content: `You are an AI assistant helping with the ${task.context.repository.owner}/${task.context.repository.name} open-source project.
+Complete the following task professionally and thoroughly.`,
+      },
+      {
+        role: 'user',
+        content: `${task.title}\n\n${task.description}`,
+      },
+    ];
+  }
+}
+
+interface PromptTemplate {
+  build(task: Task): ChatMessage[];
+}
+```
+
+---
+
+## 9\. Security & Secrets Management
+
+TypeScript
+
+```
+// packages/core/src/security/vault.ts
+
+import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'crypto';
+
+/**
+ * Secure vault for storing contributor credentials.
+ * 
+ * In production, use HashiCorp Vault, AWS Secrets Manager, or similar.
+ * This provides a reference implementation with AES-256-GCM encryption.
+ */
+export interface SecureVault {
+  storeSecret(key: string, value: any, metadata?: Record<string, any>): Promise<string>;
+  getSecret(ref: string): Promise<any>;
+  rotateSecret(ref: string, newValue: any): Promise<void>;
+  deleteSecret(ref: string): Promise<void>;
+  listSecrets(prefix: string): Promise<string[]>;
+}
+
+export class EncryptedVault implements SecureVault {
+  private secrets = new Map<string, EncryptedSecret>();
+  private masterKey: Buffer;
+
+  constructor(masterKeyHex: string) {
+    // In production: derive from HSM, KMS, or environment-provided key
+    this.masterKey = Buffer.from(masterKeyHex, 'hex');
+    if (this.masterKey.length !== 32) {
+      throw new Error('Master key must be 256 bits (32 bytes)');
+    }
+  }
+
+  async storeSecret(key: string, value: any, metadata?: Record<string, any>): Promise<string> {
+    const ref = `vault://${key}`;
+    const plaintext = JSON.stringify(value);
+    
+    // Encrypt with AES-256-GCM
+    const iv = randomBytes(16);
+    const cipher = createCipheriv('aes-256-gcm', this.masterKey, iv);
+    
+    let encrypted = cipher.update(plaintext, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    const authTag = cipher.getAuthTag();
+
+    this.secrets.set(ref, {
+      iv: iv.toString('hex'),
+      encrypted,
+      authTag: authTag.toString('hex'),
+      metadata: metadata ?? {},
+      createdAt: new Date(),
+      version: 1,
+    });
+
+    return ref;
+  }
+
+  async getSecret(ref: string): Promise<any> {
+    const secret = this.secrets.get(ref);
+    if (!secret) {
+      throw new Error(`Secret not found: ${ref}`);
+    }
+
+    // Decrypt
+    const decipher = createDecipheriv(
+      'aes-256-gcm',
+      this.masterKey,
+      Buffer.from(secret.iv, 'hex')
+    );
+    decipher.setAuthTag(Buffer.from(secret.authTag, 'hex'));
+    
+    let decrypted = decipher.update(secret.encrypted, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+
+    return JSON.parse(decrypted);
+  }
+
+  async rotateSecret(ref: string, newValue: any): Promise<void> {
+    const existing = this.secrets.get(ref);
+    if (!existing) {
+      throw new Error(`Secret not found: ${ref}`);
+    }
+
+    const plaintext = JSON.stringify(newValue);
+    const iv = randomBytes(16);
+    const cipher = createCipheriv('aes-256-gcm', this.masterKey, iv);
+    
+    let encrypted = cipher.update(plaintext, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    const authTag = cipher.getAuthTag();
+
+    this.secrets.set(ref, {
+      ...existing,
+      iv: iv.toString('hex'),
+      encrypted,
+      authTag: authTag.toString('hex'),
+      version: existing.version + 1,
+    });
+  }
+
+  async deleteSecret(ref: string): Promise<void> {
+    this.secrets.delete(ref);
+  }
+
+  async listSecrets(prefix: string): Promise<string[]> {
+    return Array.from(this.secrets.keys()).filter(k => k.includes(prefix));
+  }
+}
+
+interface EncryptedSecret {
+  iv: string;
+  encrypted: string;
+  authTag: string;
+  metadata: Record<string, any>;
+  createdAt: Date;
+  version: number;
+}
+
+// ── Audit Logger ──────────────────────────────────────
+
+// packages/core/src/security/audit.ts
+
+export interface AuditEntry {
+  timestamp: Date;
+  action: string;
+  [key: string]: any;
+}
+
+export class AuditLogger {
+  private entries: AuditEntry[] = [];
+  private sinks: AuditSink[] = [];
+
+  addSink(sink: AuditSink): void {
+    this.sinks.push(sink);
+  }
+
+  log(entry: Omit<AuditEntry, 'timestamp'>): void {
+    const fullEntry: AuditEntry = {
+      ...entry,
+      timestamp: new Date(),
+    };
+
+    this.entries.push(fullEntry);
+
+    // Fan out to all sinks
+    for (const sink of this.sinks) {
+      sink.write(fullEntry).catch(err => {
+        console.error(`Audit sink error: ${err.message}`);
+      });
+    }
+  }
+
+  async query(filter: {
+    action?: string;
+    contributorId?: string;
+    taskId?: string;
+    from?: Date;
+    to?: Date;
+    limit?: number;
+  }): Promise<AuditEntry[]> {
+    let results = this.entries;
+
+    if (filter.action) {
+      results = results.filter(e => e.action === filter.action);
+    }
+    if (filter.contributorId) {
+      results = results.filter(e => e.contributorId === filter.contributorId);
+    }
+    if (filter.taskId) {
+      results = results.filter(e => e.taskId === filter.taskId);
+    }
+    if (filter.from) {
+      results = results.filter(e => e.timestamp >= filter.from!);
+    }
+    if (filter.to) {
+      results = results.filter(e => e.timestamp <= filter.to!);
+    }
+
+    return results.slice(-(filter.limit ?? 100));
+  }
+}
+
+export interface AuditSink {
+  write(entry: AuditEntry): Promise<void>;
+}
+
+export class ConsoleAuditSink implements AuditSink {
+  async write(entry: AuditEntry): Promise<void> {
+    console.log(`[AUDIT] ${entry.timestamp.toISOString()} ${entry.action}`, 
+      JSON.stringify(entry, null, 0));
+  }
+}
+
+export class FileAuditSink implements AuditSink {
+  constructor(private filePath: string) {}
+  
+  async write(entry: AuditEntry): Promise<void> {
+    const { appendFile } = await import('fs/promises');
+    await appendFile(this.filePath, JSON.stringify(entry) + '\n');
+  }
+}
+```
+
+### RBAC (Role-Based Access Control)
+
+TypeScript
+
+```
+// packages/core/src/security/rbac.ts
+
+export type Role = 'owner' | 'maintainer' | 'contributor' | 'sponsor' | 'viewer';
+
+export type Permission = 
+  | 'project.manage'
+  | 'contribution.register'
+  | 'contribution.manage-own'
+  | 'contribution.manage-all'
+  | 'task.submit'
+  | 'task.approve'
+  | 'task.cancel'
+  | 'task.view'
+  | 'budget.view-own'
+  | 'budget.view-all'
+  | 'audit.view'
+  | 'settings.manage';
+
+const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
+  owner: [
+    'project.manage', 'contribution.register', 'contribution.manage-own',
+    'contribution.manage-all', 'task.submit', 'task.approve', 'task.cancel',
+    'task.view', 'budget.view-own', 'budget.view-all', 'audit.view', 'settings.manage',
+  ],
+  maintainer: [
+    'contribution.register', 'contribution.manage-own', 'task.submit',
+    'task.approve', 'task.cancel', 'task.view', 'budget.view-own',
+    'budget.view-all', 'audit.view',
+  ],
+  contributor: [
+    'contribution.register', 'contribution.manage-own', 'task.submit',
+    'task.view', 'budget.view-own',
+  ],
+  sponsor: [
+    'contribution.register', 'contribution.manage-own',
+    'task.view', 'budget.view-own',
+  ],
+  viewer: [
+    'task.view',
+  ],
+};
+
+export class RBAC {
+  hasPermission(role: Role, permission: Permission): boolean {
+    return ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
+  }
+
+  requirePermission(role: Role, permission: Permission): void {
+    if (!this.hasPermission(role, permission)) {
+      throw new Error(
+        `Permission denied: role '${role}' does not have '${permission}'`
+      );
+    }
+  }
+
+  getPermissions(role: Role): Permission[] {
+    return ROLE_PERMISSIONS[role] ?? [];
+  }
+}
+```
+
+---
+
+## 10\. SDK & Plugin System
+
+TypeScript
+
+```
+// packages/sdk/src/plugin.ts
+
+import { Task, TaskResult, TaskType, ProviderType } from '@ace/core';
+
+/**
+ * Plugin interface for extending ACE.
+ * 
+ * Plugins can:
+ * - Add new AI providers
+ * - Add new task types
+ * - Add integrations (Slack, Discord, Linear, etc.)
+ * - Add custom prompt templates
+ * - Add audit sinks
+ * - Hook into lifecycle events
+ */
+export interface ACEPlugin {
+  /** Unique plugin identifier */
+  name: string;
+  
+  /** Semantic version */
+  version: string;
+  
+  /** Plugin description */
+  description?: string;
+  
+  /** Initialize the plugin with the ACE engine context */
+  initialize(context: PluginContext): Promise<void>;
+  
+  /** Clean up resources */
+  destroy?(): Promise<void>;
+}
+
+export interface PluginContext {
+  // Registration
+  registerProvider(type: ProviderType, factory: ProviderFactory): void;
+  registerTaskType(type: string, handler: TaskHandler): void;
+  registerPromptTemplate(taskType: TaskType, template: PromptTemplate): void;
+  registerAuditSink(sink: AuditSink): void;
+  
+  // Event hooks
+  on(event: string, handler: (...args: any[]) => void): void;
+  
+  // Configuration
+  getConfig(): Record<string, any>;
+  
+  // Logging
+  logger: PluginLogger;
+}
+
+export interface TaskHandler {
+  /** Validate task input */
+  validate?(task: Task): Promise<{ valid: boolean; errors?: string[] }>;
+  
+  /** Pre-process task before execution */
+  preProcess?(task: Task): Promise<Task>;
+  
+  /** Post-process task result */
+  postProcess?(task: Task, result: TaskResult): Promise<TaskResult>;
+  
+  /** Custom prompt building */
+  buildPrompt?(task: Task): ChatMessage[];
+}
+
+export interface PluginLogger {
+  info(message: string, ...args: any[]): void;
+  warn(message: string, ...args: any[]): void;
+  error(message: string, ...args: any[]): void;
+  debug(message: string, ...args: any[]): void;
+}
+
+// ── Example Plugin: GitHub Integration ──────────────
+
+// plugins/plugin-github/src/index.ts
+
+export class GitHubPlugin implements ACEPlugin {
+  name = '@ace/plugin-github';
+  version = '1.0.0';
+  description = 'GitHub integration for ACE - auto-creates PRs, reviews, and issue responses';
+
+  private octokit: any;
+
+  async initialize(context: PluginContext): Promise<void> {
+    const config = context.getConfig();
+    const { Octokit } = await import('@octokit/rest');
+    
+    this.octokit = new Octokit({ auth: config.githubToken });
+
+    // Listen for completed tasks and take action
+    context.on('task:completed', async (task: Task) => {
+      if (task.result?.codeChanges?.length) {
+        await this.createPullRequest(task);
+      }
+      if (task.type === 'pr-review' && task.result) {
+        await this.submitReview(task);
+      }
+      if (task.type === 'bug-triage' && task.result?.structuredOutput) {
+        await this.labelIssue(task);
+      }
+    });
+
+    // Listen for new issues and auto-triage
+    context.on('github:issue.opened', async (event: any) => {
+      context.logger.info(`New issue #${event.issue.number}: ${event.issue.title}`);
+      // Auto-submit a bug-triage task
+    });
+
+    context.logger.info('GitHub plugin initialized');
+  }
+
+  private async createPullRequest(task: Task): Promise<void> {
+    const { repository } = task.context;
+    const branch = `ace/task-${task.id}`;
+    
+    // Create branch, commit changes, open PR
+    // (Implementation using octokit)
+  }
+
+  private async submitReview(task: Task): Promise<void> {
+    const { pullRequest } = task.context;
+    if (!pullRequest) return;
+    
+    const event = task.result?.structuredOutput?.approved 
+      ? 'APPROVE' 
+      : 'REQUEST_CHANGES';
+    
+    await this.octokit.pulls.createReview({
+      owner: task.context.repository.owner,
+      repo: task.context.repository.name,
+      pull_number: pullRequest.number,
+      body: task.result?.output,
+      event,
+    });
+  }
+
+  private async labelIssue(task: Task): Promise<void> {
+    const { issue } = task.context;
+    if (!issue) return;
+    
+    const triage = task.result?.structuredOutput;
+    if (triage?.labels) {
+      await this.octokit.issues.addLabels({
+        owner: task.context.repository.owner,
+        repo: task.context.repository.name,
+        issue_number: issue.number,
+        labels: triage.labels,
+      });
+    }
+  }
+}
+```
+
+### Plugin Loader
+
+TypeScript
+
+```
+// packages/core/src/plugins/loader.ts
+
+import { ACEPlugin, PluginContext } from '@ace/sdk';
+
+export class PluginLoader {
+  private plugins = new Map<string, ACEPlugin>();
+
+  constructor(private context: PluginContext) {}
+
+  async loadPlugin(plugin: ACEPlugin): Promise<void> {
+    if (this.plugins.has(plugin.name)) {
+      throw new Error(`Plugin '${plugin.name}' is already loaded`);
+    }
+
+    console.log(`Loading plugin: ${plugin.name}@${plugin.version}`);
+    
+    await plugin.initialize(this.context);
+    this.plugins.set(plugin.name, plugin);
+    
+    console.log(`Plugin loaded: ${plugin.name}`);
+  }
+
+  async loadFromNpm(packageName: string): Promise<void> {
+    const module = await import(packageName);
+    const PluginClass = module.default ?? module[Object.keys(module)[0]];
+    const plugin = new PluginClass();
+    await this.loadPlugin(plugin);
+  }
+
+  async unloadPlugin(name: string): Promise<void> {
+    const plugin = this.plugins.get(name);
+    if (plugin?.destroy) {
+      await plugin.destroy();
+    }
+    this.plugins.delete(name);
+  }
+
+  getPlugin(name: string): ACEPlugin | undefined {
+    return this.plugins.get(name);
+  }
+
+  listPlugins(): Array<{ name: string; version: string }> {
+    return Array.from(this.plugins.values()).map(p => ({
+      name: p.name,
+      version: p.version,
+    }));
+  }
+}
+```
+
+---
+
+## 11\. Dashboard & API
+
+### REST API
+
+TypeScript
+
+```
+// packages/api/src/routes/index.ts
+
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import { jwt } from 'hono/jwt';
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
+
+const app = new Hono();
+
+app.use('/*', cors());
+app.use('/api/*', jwt({ secret: process.env.JWT_SECRET! }));
+
+// ── Contributions ──────────────────────────────────
+
+app.post('/api/contributions', 
+  zValidator('json', z.object({
+    provider: z.enum(['openai', 'anthropic', 'google', 'mistral', 'ollama', 'custom']),
+    credential: z.object({
+      type: z.enum(['api-key', 'oauth', 'endpoint']),
+      apiKey: z.string().optional(),
+      accessToken: z.string().optional(),
+      baseUrl: z.string().url().optional(),
+    }),
+    budget: z.object({
+      maxMonthlySpendUSD: z.number().positive().max(10000),
+      maxDailySpendUSD: z.number().positive().optional(),
+      maxPerTaskSpendUSD: z.number().positive().optional(),
+    }),
+    preferences: z.object({
+      allowedTasks: z.array(z.string()).optional(),
+      maxModelTier: z.enum(['economy', 'standard', 'premium']).optional(),
+      priorityMultiplier: z.number().min(0.1).max(10).optional(),
+    }).optional(),
+  })),
+  async (c) => {
+    const body = c.req.valid('json');
+    const userId = c.get('jwtPayload').sub;
+    
+    const contribution = await gateway.registerContribution({
+      contributorId: userId,
+      ...body,
+    });
+    
+    return c.json(contribution, 201);
+  }
+);
+
+app.get('/api/contributions', async (c) => {
+  const userId = c.get('jwtPayload').sub;
+  const contributions = await contributionStore.getByContributor(userId);
+  return c.json(contributions);
+});
+
+app.patch('/api/contributions/:id', async (c) => {
+  const id = c.req.param('id');
+  const body = await c.req.json();
+  const updated = await gateway.updateContribution(id, body);
+  return c.json(updated);
+});
+
+app.delete('/api/contributions/:id', async (c) => {
+  const id = c.req.param('id');
+  await gateway.removeContribution(id);
+  return c.json({ ok: true });
+});
+
+// ── Tasks ──────────────────────────────────────────
+
+app.post('/api/tasks',
+  zValidator('json', z.object({
+    type: z.string(),
+    title: z.string().min(1),
+    description: z.string(),
+    priority: z.enum(['critical', 'high', 'medium', 'low', 'background']).default('medium'),
+    context: z.object({
+      repository: z.object({
+        owner: z.string(),
+        name: z.string(),
+        defaultBranch: z.string().default('main'),
+        language: z.string(),
+        frameworks: z.array(z.string()).default([]),
+      }),
+      files: z.array(z.object({
+        path: z.string(),
+        content: z.string(),
+        language: z.string(),
+      })).default([]),
+    }),
+  })),
+  async (c) => {
+    const body = c.req.valid('json');
+    const userId = c.get('jwtPayload').sub;
+    
+    const task = await orchestrator.submitTask({
+      ...body,
+      projectId: body.context.repository.owner + '/' + body.context.repository.name,
+      requestedBy: userId,
+      dependsOn: [],
+      requirements: {
+        minModelTier: 'economy',
+        requiredCapabilities: ['chat', 'code'],
+        requiresHumanReview: false,
+        autoMerge: false,
+      },
+    });
+    
+    return c.json(task, 201);
+  }
+);
+
+app.get('/api/tasks', async (c) => {
+  const status = c.req.query('status');
+  const tasks = status 
+    ? await taskStore.getByStatus(status) 
+    : await taskStore.getAll();
+  return c.json(tasks);
+});
+
+app.get('/api/tasks/:id', async (c) => {
+  const task = await taskStore.get(c.req.param('id'));
+  if (!task) return c.json({ error: 'Not found' }, 404);
+  return c.json(task);
+});
+
+// ── Budget & Stats ─────────────────────────────────
+
+app.get('/api/budget/pool', async (c) => {
+  const stats = budgetManager.getPoolStats();
+  return c.json(stats);
+});
+
+app.get('/api/budget/:contributionId', async (c) => {
+  const summary = budgetManager.getBudgetSummary(c.req.param('contributionId'));
+  if (!summary) return c.json({ error: 'Not found' }, 404);
+  return c.json(summary);
+});
+
+// ── Audit ──────────────────────────────────────────
+
+app.get('/api/audit', async (c) => {
+  const entries = await auditLogger.query({
+    from: c.req.query('from') ? new Date(c.req.query('from')!) : undefined,
+    to: c.req.query('to') ? new Date(c.req.query('to')!) : undefined,
+    action: c.req.query('action') ?? undefined,
+    limit: parseInt(c.req.query('limit') ?? '100'),
+  });
+  return c.json(entries);
+});
+
+// ── Health ─────────────────────────────────────────
+
+app.get('/api/health', async (c) => {
+  const health = await gateway.healthCheckAll();
+  return c.json({
+    status: 'ok',
+    contributions: Object.fromEntries(health),
+    pool: budgetManager.getPoolStats(),
+  });
+});
+
+export default app;
+```
+
+### Dashboard UI (React)
+
+React
+
+```
+// packages/dashboard/src/app/page.tsx
+
+'use client';
+
+import { useState, useEffect } from 'react';
+import { PoolStats, BudgetSummary, Task, AIContribution } from '@ace/core';
+
+export default function Dashboard() {
+  const [poolStats, setPoolStats] = useState<PoolStats | null>(null);
+  const [contributions, setContributions] = useState<AIContribution[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [activeTab, setActiveTab] = useState<'overview' | 'contributions' | 'tasks' | 'audit'>('overview');
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  async function fetchData() {
+    const [pool, contribs, taskList] = await Promise.all([
+      fetch('/api/budget/pool').then(r => r.json()),
+      fetch('/api/contributions').then(r => r.json()),
+      fetch('/api/tasks?limit=50').then(r => r.json()),
+    ]);
+    setPoolStats(pool);
+    setContributions(contribs);
+    setTasks(taskList);
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-950 text-white">
+      {/* Header */}
+      <header className="border-b border-gray-800 px-6 py-4">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🤖</span>
+            <h1 className="text-xl font-bold">ACE Dashboard</h1>
+            <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">
+              Active
+            </span>
+          </div>
+          <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium">
+            + Add Contribution
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        {/* Pool Stats Cards */}
+        {poolStats && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <StatCard
+              title="Monthly Budget"
+              value={`$${poolStats.totalMonthlyBudget.toFixed(2)}`}
+              subtitle={`$${poolStats.totalMonthlyRemaining.toFixed(2)} remaining`}
+              color="blue"
+            />
+            <StatCard
+              title="Monthly Spent"
+              value={`$${poolStats.totalMonthlySpent.toFixed(2)}`}
+              subtitle={`${poolStats.percentUsed.toFixed(1)}% used`}
+              color={poolStats.percentUsed > 80 ? 'red' : poolStats.percentUsed > 50 ? 'yellow' : 'green'}
+            />
+            <StatCard
+              title="Active Contributors"
+              value={poolStats.activeContributions.toString()}
+              subtitle="AI API connections"
+              color="purple"
+            />
+            <StatCard
+              title="Daily Capacity"
+              value={`$${poolStats.estimatedDailyCapacity.toFixed(2)}`}
+              subtitle="remaining today"
+              color="cyan"
+            />
+          </div>
+        )}
+
+        {/* Budget Usage Bar */}
+        {poolStats && (
+          <div className="mb-8 bg-gray-900 rounded-xl p-6 border border-gray-800">
+            <h3 className="text-sm font-medium text-gray-400 mb-3">Monthly Pool Usage</h3>
+            <div className="w-full bg-gray-800 rounded-full h-4 overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  poolStats.percentUsed > 80 ? 'bg-red-500' :
+                  poolStats.percentUsed > 50 ? 'bg-yellow-500' : 'bg-green-500'
+                }`}
+                style={{ width: `${Math.min(poolStats.percentUsed, 100)}%` }}
+              />
+            </div>
+            <div className="flex justify-between mt-2 text-xs text-gray-500">
+              <span>$0</span>
+              <span>${poolStats.totalMonthlyBudget.toFixed(0)}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Tabs */}
+        <div className="flex gap-1 mb-6 bg-gray-900 rounded-lg p-1 w-fit">
+          {(['overview', 'contributions', 'tasks', 'audit'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-md text-sm font-medium capitalize transition-colors ${
+                activeTab === tab
+                  ? 'bg-gray-700 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'contributions' && (
+          <ContributionsList contributions={contributions} />
+        )}
+        
+        {activeTab === 'tasks' && (
+          <TasksList tasks={tasks} />
+        )}
+        
+        {activeTab === 'overview' && (
+          <Overview contributions={contributions} tasks={tasks} poolStats={poolStats} />
+        )}
+      </main>
+    </div>
+  );
+}
+
+function StatCard({ title, value, subtitle, color }: { 
+  title: string; value: string; subtitle: string; color: string;
+}) {
+  const colorClasses: Record<string, string> = {
+    blue: 'from-blue-500/10 to-blue-600/5 border-blue-500/20',
+    green: 'from-green-500/10 to-green-600/5 border-green-500/20',
+    yellow: 'from-yellow-500/10 to-yellow-600/5 border-yellow-500/20',
+    red: 'from-red-500/10 to-red-600/5 border-red-500/20',
+    purple: 'from-purple-500/10 to-purple-600/5 border-purple-500/20',
+    cyan: 'from-cyan-500/10 to-cyan-600/5 border-cyan-500/20',
+  };
+
+  return (
+    <div className={`bg-gradient-to-br ${colorClasses[color]} border rounded-xl p-5`}>
+      <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">{title}</p>
+      <p className="text-2xl font-bold mt-1">{value}</p>
+      <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
+    </div>
+  );
+}
+
+function ContributionsList({ contributions }: { contributions: AIContribution[] }) {
+  const statusColors: Record<string, string> = {
+    active: 'bg-green-500',
+    paused: 'bg-yellow-500',
+    exhausted: 'bg-red-500',
+    error: 'bg-red-600',
+  };
+
+  return (
+    <div className="space-y-3">
+      {contributions.map(c => (
+        <div key={c.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className={`w-2 h-2 rounded-full ${statusColors[c.status]}`} />
+            <div>
+              <p className="font-medium">{c.provider}</p>
+              <p className="text-sm text-gray-400">
+                ${c.budget.currentMonthSpendUSD.toFixed(2)} / ${c.budget.maxMonthlySpendUSD.toFixed(2)} this month
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-400">
+              {c.preferences.allowedTasks.length} task types
+            </span>
+            <span className={`text-xs px-2 py-1 rounded-full ${
+              c.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-400'
+            }`}>
+              {c.status}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TasksList({ tasks }: { tasks: Task[] }) {
+  const statusIcons: Record<string, string> = {
+    completed: '✅',
+    running: '⏳',
+    queued: '📋',
+    failed: '❌',
+    pending: '🕐',
+    retrying: '🔄',
+  };
+
+  return (
+    <div className="space-y-2">
+      {tasks.map(task => (
+        <div key={task.id} className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+          <div className="flex items-start justify-between">
+            <div className="flex items-start gap-3">
+              <span className="text-lg">{statusIcons[task.status] ?? '❓'}</span>
+              <div>
+                <p className="font-medium">{task.title}</p>
+                <div className="flex gap-2 mt-1">
+                  <span className="text-xs bg-gray-800 px-2 py-0.5 rounded">{task.type}</span>
+                  <span className="text-xs bg-gray-800 px-2 py-0.5 rounded">{task.priority}</span>
+                  {task.actualCostUSD && (
+                    <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded">
+                      ${task.actualCostUSD.toFixed(4)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <span className="text-xs text-gray-500">
+              {task.completedAt 
+                ? `Completed ${new Date(task.completedAt).toLocaleString()}`
+                : task.startedAt
+                ? `Started ${new Date(task.startedAt).toLocaleString()}`
+                : `Queued ${new 
+```
+
+## Message from claude-opus-4-6-thinking
+
+Anthropicclaude-opus-4-6
+
+# 🚀 AIContrib: Open Source AI-Powered Contribution System
+
+## Architecture Overview
+
+A decentralized, plugin-based system where contributors donate AI compute (API tokens, credits, accounts) instead of (or alongside) money, and the system orchestrates those resources to autonomously advance project development.
+
+---
+
+## System Architecture Diagram
+
+text
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        AIContrib Platform                          │
+│                                                                     │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐  │
+│  │ Contributor   │  │  Task        │  │  AI Orchestration        │  │
+│  │ Portal &      │  │  Decomposition│  │  Engine                  │  │
+│  │ Wallet Mgmt   │  │  Engine      │  │  (Multi-Provider Router) │  │
+│  └──────┬───────┘  └──────┬───────┘  └──────────┬───────────────┘  │
+│         │                 │                      │                   │
+│  ┌──────▼─────────────────▼──────────────────────▼───────────────┐  │
+│  │                   Core Orchestrator (Event-Driven)            │  │
+│  │         ┌─────────────────────────────────────┐               │  │
+│  │         │   Token Budget & Rate Limiter        │               │  │
+│  │         │   Fair Scheduling & Priority Queue   │               │  │
+│  │         │   Provider Health & Fallback Manager │               │  │
+│  │         └─────────────────────────────────────┘               │  │
+│  └──────┬────────────────────────────────────────────────────────┘  │
+│         │                                                           │
+│  ┌──────▼────────────────────────────────────────────────────────┐  │
+│  │              Provider Adapter Layer (Plugin System)           │  │
+│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌───────┐ │  │
+│  │  │ OpenAI  │ │Anthropic│ │ Google  │ │ Local   │ │Custom │ │  │
+│  │  │ Adapter │ │ Adapter │ │ Adapter │ │ LLM     │ │Adapter│ │  │
+│  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └───────┘ │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+│                                                                     │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │              Development Pipeline                            │   │
+│  │  Issue Triage → Code Gen → Review → Test → PR → Merge       │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+│  ┌────────────┐ ┌──────────────┐ ┌───────────────┐ ┌───────────┐  │
+│  │ Audit &    │ │ Contributor  │ │ Credential    │ │ Analytics │  │
+│  │ Compliance │ │ Attribution  │ │ Vault (E2E)   │ │ Dashboard │  │
+│  └────────────┘ └──────────────┘ └───────────────┘ └───────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Project Structure
+
+text
+
+```
+aicontrib/
+├── README.md
+├── LICENSE                          # Apache 2.0
+├── pyproject.toml
+├── docker-compose.yml
+├── Makefile
+├── .env.example
+│
+├── docs/
+│   ├── architecture.md
+│   ├── provider-plugin-guide.md
+│   ├── contributor-guide.md
+│   ├── security-model.md
+│   └── api-reference.md
+│
+├── core/
+│   ├── __init__.py
+│   ├── config.py                    # Global configuration
+│   ├── orchestrator.py              # Central orchestration engine
+│   ├── scheduler.py                 # Fair task scheduling
+│   ├── token_budget.py              # Token budget management
+│   ├── event_bus.py                 # Async event system
+│   ├── exceptions.py
+│   └── models/
+│       ├── __init__.py
+│       ├── contributor.py
+│       ├── contribution.py
+│       ├── task.py
+│       ├── provider.py
+│       └── project.py
+│
+├── providers/
+│   ├── __init__.py
+│   ├── base.py                      # Abstract provider interface
+│   ├── registry.py                  # Provider plugin registry
+│   ├── health.py                    # Health check & failover
+│   ├── adapters/
+│   │   ├── __init__.py
+│   │   ├── openai_adapter.py
+│   │   ├── anthropic_adapter.py
+│   │   ├── google_gemini_adapter.py
+│   │   ├── mistral_adapter.py
+│   │   ├── local_llm_adapter.py     # Ollama, vLLM, llama.cpp
+│   │   ├── huggingface_adapter.py
+│   │   └── custom_adapter.py        # Template for new providers
+│   └── router.py                    # Intelligent request routing
+│
+├── credentials/
+│   ├── __init__.py
+│   ├── vault.py                     # Encrypted credential storage
+│   ├── encryption.py                # AES-256-GCM encryption
+│   ├── rotation.py                  # Key rotation manager
+│   └── oauth_handler.py             # OAuth2 flow for providers
+│
+├── contributors/
+│   ├── __init__.py
+│   ├── manager.py                   # Contributor lifecycle
+│   ├── wallet.py                    # Token budget wallet
+│   ├── attribution.py              # Contribution tracking
+│   ├── reputation.py               # Reputation/trust scoring
+│   └── policies.py                 # Contribution policies & limits
+│
+├── tasks/
+│   ├── __init__.py
+│   ├── decomposer.py               # Break issues into AI tasks
+│   ├── estimator.py                # Token cost estimation
+│   ├── executor.py                 # Task execution engine
+│   ├── validator.py                # Output validation
+│   └── templates/
+│       ├── code_generation.py
+│       ├── code_review.py
+│       ├── documentation.py
+│       ├── bug_fix.py
+│       ├── test_generation.py
+│       ├── refactoring.py
+│       └── translation.py
+│
+├── pipeline/
+│   ├── __init__.py
+│   ├── dev_pipeline.py             # Full development pipeline
+│   ├── stages/
+│   │   ├── issue_triage.py
+│   │   ├── planning.py
+│   │   ├── code_generation.py
+│   │   ├── code_review.py
+│   │   ├── testing.py
+│   │   ├── documentation.py
+│   │   └── pr_creation.py
+│   └── hooks.py                    # Pipeline lifecycle hooks
+│
+├── integrations/
+│   ├── __init__.py
+│   ├── github.py                   # GitHub integration
+│   ├── gitlab.py                   # GitLab integration
+│   ├── jira.py                     # Jira integration
+│   ├── discord.py                  # Discord notifications
+│   ├── slack.py                    # Slack notifications
+│   └── webhooks.py                 # Generic webhook support
+│
+├── api/
+│   ├── __init__.py
+│   ├── app.py                      # FastAPI application
+│   ├── routes/
+│   │   ├── contributors.py
+│   │   ├── projects.py
+│   │   ├── tasks.py
+│   │   ├── providers.py
+│   │   ├── analytics.py
+│   │   └── admin.py
+│   ├── middleware/
+│   │   ├── auth.py
+│   │   ├── rate_limit.py
+│   │   └── audit.py
+│   └── websockets/
+│       └── realtime.py             # Real-time task updates
+│
+├── web/                            # Frontend (React/Next.js)
+│   ├── package.json
+│   ├── src/
+│   │   ├── app/
+│   │   ├── components/
+│   │   │   ├── Dashboard/
+│   │   │   ├── ContributorPanel/
+│   │   │   ├── ProviderConfig/
+│   │   │   ├── TaskMonitor/
+│   │   │   └── Analytics/
+│   │   ├── hooks/
+│   │   ├── lib/
+│   │   └── types/
+│   └── public/
+│
+├── audit/
+│   ├── __init__.py
+│   ├── logger.py                   # Immutable audit log
+│   ├── compliance.py               # Policy compliance checker
+│   └── reporter.py                 # Usage reports
+│
+├── cli/
+│   ├── __init__.py
+│   ├── main.py                     # CLI entry point
+│   ├── commands/
+│   │   ├── init.py
+│   │   ├── contribute.py
+│   │   ├── project.py
+│   │   ├── provider.py
+│   │   └── status.py
+│   └── interactive.py              # Interactive setup wizard
+│
+├── sdk/
+│   ├── python/
+│   │   └── aicontrib_sdk/
+│   ├── javascript/
+│   │   └── aicontrib-sdk/
+│   └── go/
+│       └── aicontrib/
+│
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   ├── e2e/
+│   └── fixtures/
+│
+├── migrations/                     # Database migrations (Alembic)
+│   └── versions/
+│
+└── deploy/
+    ├── kubernetes/
+    ├── terraform/
+    └── docker/
+```
+
+---
+
+## Core Implementation
+
+### 1\. Provider Plugin System (The Heart)
+
+Python
+
+```
+# providers/base.py
+"""
+Abstract base class for all AI provider adapters.
+Every provider plugin must implement this interface.
+"""
+
+from __future__ import annotations
+
+import asyncio
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum, auto
+from typing import (
+    Any, AsyncIterator, Callable, Dict, List, 
+    Optional, Protocol, Type, TypeVar, Union
+)
+from uuid import UUID, uuid4
+
+import structlog
+
+logger = structlog.get_logger(__name__)
+
+class ProviderCapability(Enum):
+    """Capabilities a provider can support."""
+    TEXT_GENERATION = auto()
+    CODE_GENERATION = auto()
+    CODE_REVIEW = auto()
+    EMBEDDING = auto()
+    IMAGE_GENERATION = auto()
+    FUNCTION_CALLING = auto()
+    STREAMING = auto()
+    VISION = auto()
+    LONG_CONTEXT = auto()
+    STRUCTURED_OUTPUT = auto()
+    FINE_TUNING = auto()
+    BATCH_PROCESSING = auto()
+
+class ModelTier(Enum):
+    """Model capability tiers for intelligent routing."""
+    FRONTIER = "frontier"         # GPT-4o, Claude 3.5 Sonnet, Gemini Ultra
+    STANDARD = "standard"         # GPT-4o-mini, Claude 3 Haiku, Gemini Pro
+    EFFICIENT = "efficient"       # GPT-3.5, Mistral 7B, local models
+    SPECIALIZED = "specialized"   # Fine-tuned or domain-specific
+
+class ProviderStatus(Enum):
+    HEALTHY = "healthy"
+    DEGRADED = "degraded"
+    UNHEALTHY = "unhealthy"
+    RATE_LIMITED = "rate_limited"
+    QUOTA_EXHAUSTED = "quota_exhausted"
+    UNKNOWN = "unknown"
+
+@dataclass(frozen=True)
+class TokenUsage:
+    """Immutable record of token consumption."""
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
+    estimated_cost_usd: float
+    model: str
+    provider: str
+    timestamp: datetime = field(default_factory=datetime.utcnow)
+    
+    @property
+    def cost_per_1k_tokens(self) -> float:
+        if self.total_tokens == 0:
+            return 0.0
+        return (self.estimated_cost_usd / self.total_tokens) * 1000
+
+@dataclass
+class ProviderQuota:
+    """Tracks remaining quota for a provider credential."""
+    tokens_remaining: Optional[int] = None
+    requests_remaining: Optional[int] = None
+    cost_remaining_usd: Optional[float] = None
+    reset_at: Optional[datetime] = None
+    rate_limit_rpm: Optional[int] = None
+    rate_limit_tpm: Optional[int] = None
+
+@dataclass
+class ModelInfo:
+    """Metadata about a model available through a provider."""
+    model_id: str
+    display_name: str
+    provider: str
+    tier: ModelTier
+    capabilities: set[ProviderCapability]
+    max_context_tokens: int
+    max_output_tokens: int
+    cost_per_1m_input_tokens: float   # USD
+    cost_per_1m_output_tokens: float  # USD
+    supports_streaming: bool = True
+    supports_json_mode: bool = False
+    knowledge_cutoff: Optional[str] = None
+    
+    def estimate_cost(self, input_tokens: int, output_tokens: int) -> float:
+        return (
+            (input_tokens / 1_000_000) * self.cost_per_1m_input_tokens +
+            (output_tokens / 1_000_000) * self.cost_per_1m_output_tokens
+        )
+
+@dataclass
+class CompletionRequest:
+    """Unified completion request across all providers."""
+    messages: List[Dict[str, Any]]
+    model: Optional[str] = None
+    model_tier: ModelTier = ModelTier.STANDARD
+    max_tokens: Optional[int] = None
+    temperature: float = 0.7
+    top_p: float = 1.0
+    stop: Optional[List[str]] = None
+    stream: bool = False
+    json_mode: bool = False
+    tools: Optional[List[Dict[str, Any]]] = None
+    tool_choice: Optional[str] = None
+    system_prompt: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    # Budget constraints
+    max_cost_usd: Optional[float] = None
+    priority: int = 5  # 1 = highest, 10 = lowest
+    
+    # Tracking
+    request_id: UUID = field(default_factory=uuid4)
+    task_id: Optional[UUID] = None
+    contributor_id: Optional[UUID] = None
+
+@dataclass
+class CompletionResponse:
+    """Unified completion response from any provider."""
+    content: str
+    model: str
+    provider: str
+    usage: TokenUsage
+    finish_reason: str
+    request_id: UUID
+    latency_ms: float
+    raw_response: Optional[Dict[str, Any]] = None
+    tool_calls: Optional[List[Dict[str, Any]]] = None
+    
+    # For streaming
+    is_streaming: bool = False
+    stream_chunks: Optional[List[str]] = None
+
+class AIProviderAdapter(ABC):
+    """
+    Abstract base class that all provider adapters must implement.
+    
+    To create a new provider plugin:
+    1. Subclass AIProviderAdapter
+    2. Implement all abstract methods
+    3. Register via @provider_registry.register("provider_name")
+    4. Place in providers/adapters/ directory
+    
+    The system will auto-discover and load all registered adapters.
+    """
+    
+    def __init__(self, credential_id: str, config: Dict[str, Any] = None):
+        self.credential_id = credential_id
+        self.config = config or {}
+        self._status = ProviderStatus.UNKNOWN
+        self._quota = ProviderQuota()
+        self._request_count = 0
+        self._error_count = 0
+        self._last_health_check: Optional[datetime] = None
+        self._circuit_breaker_open = False
+        self._circuit_breaker_failures = 0
+        self._circuit_breaker_threshold = 5
+        self._circuit_breaker_reset_time: Optional[datetime] = None
+    
+    # ── Required Properties ────────────────────────────────────────
+    
+    @property
+    @abstractmethod
+    def provider_name(self) -> str:
+        """Unique identifier for this provider (e.g., 'openai', 'anthropic')."""
+        ...
+    
+    @property
+    @abstractmethod
+    def display_name(self) -> str:
+        """Human-readable provider name."""
+        ...
+    
+    @property
+    @abstractmethod
+    def supported_capabilities(self) -> set[ProviderCapability]:
+        """Set of capabilities this provider supports."""
+        ...
+    
+    @property
+    @abstractmethod
+    def available_models(self) -> List[ModelInfo]:
+        """List of models available through this provider."""
+        ...
+    
+    # ── Required Methods ───────────────────────────────────────────
+    
+    @abstractmethod
+    async def initialize(self) -> None:
+        """
+        Initialize the provider client. Called once during setup.
+        Should validate the credential and establish connection.
+        """
+        ...
+    
+    @abstractmethod
+    async def complete(self, request: CompletionRequest) -> CompletionResponse:
+        """
+        Execute a completion request. Core method for text/code generation.
+        Must handle retries, rate limits, and error translation internally.
+        """
+        ...
+    
+    @abstractmethod
+    async def stream_complete(
+        self, request: CompletionRequest
+    ) -> AsyncIterator[str]:
+        """Stream a completion response token by token."""
+        ...
+    
+    @abstractmethod
+    async def health_check(self) -> ProviderStatus:
+        """
+        Check provider health. Should be lightweight (e.g., small completion).
+        Returns current status.
+        """
+        ...
+    
+    @abstractmethod
+    async def get_quota(self) -> ProviderQuota:
+        """Query remaining quota/credits for this credential."""
+        ...
+    
+    @abstractmethod
+    async def shutdown(self) -> None:
+        """Clean up resources. Called during graceful shutdown."""
+        ...
+    
+    @abstractmethod
+    def translate_error(self, error: Exception) -> "ProviderError":
+        """Translate provider-specific errors into unified error types."""
+        ...
+    
+    # ── Optional Override Methods ──────────────────────────────────
+    
+    async def embed(
+        self, texts: List[str], model: Optional[str] = None
+    ) -> List[List[float]]:
+        """Generate embeddings. Override if provider supports embeddings."""
+        raise NotImplementedError(
+            f"{self.provider_name} does not support embeddings"
+        )
+    
+    async def batch_complete(
+        self, requests: List[CompletionRequest]
+    ) -> List[CompletionResponse]:
+        """Batch completion for efficiency. Default: sequential execution."""
+        return [await self.complete(req) for req in requests]
+    
+    def select_model(
+        self, 
+        tier: ModelTier, 
+        capabilities: set[ProviderCapability] = None
+    ) -> Optional[ModelInfo]:
+        """Select best model matching tier and capability requirements."""
+        candidates = [
+            m for m in self.available_models
+            if m.tier == tier and (
+                capabilities is None or 
+                capabilities.issubset(m.capabilities)
+            )
+        ]
+        if not candidates:
+            # Fall back to any tier
+            candidates = [
+                m for m in self.available_models
+                if capabilities is None or 
+                capabilities.issubset(m.capabilities)
+            ]
+        return candidates[0] if candidates else None
+    
+    # ── Circuit Breaker ────────────────────────────────────────────
+    
+    def _record_success(self):
+        self._circuit_breaker_failures = 0
+        self._circuit_breaker_open = False
+        self._request_count += 1
+    
+    def _record_failure(self):
+        self._circuit_breaker_failures += 1
+        self._error_count += 1
+        if self._circuit_breaker_failures >= self._circuit_breaker_threshold:
+            self._circuit_breaker_open = True
+            self._circuit_breaker_reset_time = (
+                datetime.utcnow() + timedelta(minutes=5)
+            )
+            logger.warning(
+                "circuit_breaker_opened",
+                provider=self.provider_name,
+                failures=self._circuit_breaker_failures
+            )
+    
+    @property
+    def is_available(self) -> bool:
+        if self._circuit_breaker_open:
+            if (self._circuit_breaker_reset_time and 
+                datetime.utcnow() > self._circuit_breaker_reset_time):
+                self._circuit_breaker_open = False
+                self._circuit_breaker_failures = 0
+                return True
+            return False
+        return self._status in (ProviderStatus.HEALTHY, ProviderStatus.UNKNOWN)
+
+class ProviderError(Exception):
+    """Base class for unified provider errors."""
+    def __init__(
+        self, message: str, provider: str, 
+        retryable: bool = False, status_code: Optional[int] = None
+    ):
+        super().__init__(message)
+        self.provider = provider
+        self.retryable = retryable
+        self.status_code = status_code
+
+class RateLimitError(ProviderError):
+    def __init__(self, provider: str, retry_after: Optional[float] = None):
+        super().__init__(
+            f"Rate limited by {provider}", provider, retryable=True, 
+            status_code=429
+        )
+        self.retry_after = retry_after
+
+class QuotaExhaustedError(ProviderError):
+    def __init__(self, provider: str):
+        super().__init__(
+            f"Quota exhausted for {provider}", provider, retryable=False,
+            status_code=402
+        )
+
+class AuthenticationError(ProviderError):
+    def __init__(self, provider: str):
+        super().__init__(
+            f"Authentication failed for {provider}", provider, 
+            retryable=False, status_code=401
+        )
+```
+
+### 2\. Provider Adapter Implementation (OpenAI Example)
+
+Python
+
+```
+# providers/adapters/openai_adapter.py
+"""
+OpenAI provider adapter. Supports GPT-4, GPT-4o, GPT-3.5, DALL-E, embeddings.
+"""
+
+from __future__ import annotations
+
+import time
+from typing import Any, AsyncIterator, Dict, List, Optional
+
+import httpx
+import structlog
+from openai import AsyncOpenAI, APIError, RateLimitError as OpenAIRateLimitError
+
+from providers.base import (
+    AIProviderAdapter,
+    CompletionRequest,
+    CompletionResponse,
+    ModelInfo,
+    ModelTier,
+    ProviderCapability,
+    ProviderError,
+    ProviderQuota,
+    ProviderStatus,
+    RateLimitError,
+    QuotaExhaustedError,
+    AuthenticationError,
+    TokenUsage,
+)
+from providers.registry import provider_registry
+from credentials.vault import CredentialVault
+
+logger = structlog.get_logger(__name__)
+
+# Model catalog with pricing (as of 2024)
+OPENAI_MODELS = [
+    ModelInfo(
+        model_id="gpt-4o",
+        display_name="GPT-4o",
+        provider="openai",
+        tier=ModelTier.FRONTIER,
+        capabilities={
+            ProviderCapability.TEXT_GENERATION,
+            ProviderCapability.CODE_GENERATION,
+            ProviderCapability.CODE_REVIEW,
+            ProviderCapability.FUNCTION_CALLING,
+            ProviderCapability.STREAMING,
+            ProviderCapability.VISION,
+            ProviderCapability.STRUCTURED_OUTPUT,
+            ProviderCapability.LONG_CONTEXT,
+        },
+        max_context_tokens=128_000,
+        max_output_tokens=16_384,
+        cost_per_1m_input_tokens=2.50,
+        cost_per_1m_output_tokens=10.00,
+        supports_streaming=True,
+        supports_json_mode=True,
+        knowledge_cutoff="2024-10",
+    ),
+    ModelInfo(
+        model_id="gpt-4o-mini",
+        display_name="GPT-4o Mini",
+        provider="openai",
+        tier=ModelTier.STANDARD,
+        capabilities={
+            ProviderCapability.TEXT_GENERATION,
+            ProviderCapability.CODE_GENERATION,
+            ProviderCapability.CODE_REVIEW,
+            ProviderCapability.FUNCTION_CALLING,
+            ProviderCapability.STREAMING,
+            ProviderCapability.VISION,
+            ProviderCapability.STRUCTURED_OUTPUT,
+        },
+        max_context_tokens=128_000,
+        max_output_tokens=16_384,
+        cost_per_1m_input_tokens=0.15,
+        cost_per_1m_output_tokens=0.60,
+        supports_streaming=True,
+        supports_json_mode=True,
+        knowledge_cutoff="2024-10",
+    ),
+    ModelInfo(
+        model_id="o1-preview",
+        display_name="O1 Preview (Reasoning)",
+        provider="openai",
+        tier=ModelTier.FRONTIER,
+        capabilities={
+            ProviderCapability.TEXT_GENERATION,
+            ProviderCapability.CODE_GENERATION,
+            ProviderCapability.CODE_REVIEW,
+        },
+        max_context_tokens=128_000,
+        max_output_tokens=32_768,
+        cost_per_1m_input_tokens=15.00,
+        cost_per_1m_output_tokens=60.00,
+        supports_streaming=False,
+        supports_json_mode=False,
+        knowledge_cutoff="2024-10",
+    ),
+]
+
+@provider_registry.register("openai")
+class OpenAIAdapter(AIProviderAdapter):
+    """Full-featured OpenAI provider adapter."""
+
+    def __init__(self, credential_id: str, config: Dict[str, Any] = None):
+        super().__init__(credential_id, config)
+        self._client: Optional[AsyncOpenAI] = None
+        self._vault = CredentialVault()
+
+    @property
+    def provider_name(self) -> str:
+        return "openai"
+
+    @property
+    def display_name(self) -> str:
+        return "OpenAI"
+
+    @property
+    def supported_capabilities(self) -> set[ProviderCapability]:
+        return {
+            ProviderCapability.TEXT_GENERATION,
+            ProviderCapability.CODE_GENERATION,
+            ProviderCapability.CODE_REVIEW,
+            ProviderCapability.EMBEDDING,
+            ProviderCapability.FUNCTION_CALLING,
+            ProviderCapability.STREAMING,
+            ProviderCapability.VISION,
+            ProviderCapability.STRUCTURED_OUTPUT,
+            ProviderCapability.LONG_CONTEXT,
+            ProviderCapability.IMAGE_GENERATION,
+        }
+
+    @property
+    def available_models(self) -> List[ModelInfo]:
+        return OPENAI_MODELS
+
+    async def initialize(self) -> None:
+        """Initialize OpenAI client with encrypted credentials."""
+        api_key = await self._vault.get_secret(
+            self.credential_id, "api_key"
+        )
+        org_id = await self._vault.get_secret(
+            self.credential_id, "org_id", required=False
+        )
+        base_url = self.config.get("base_url")  # Support Azure/proxy
+        
+        self._client = AsyncOpenAI(
+            api_key=api_key,
+            organization=org_id,
+            base_url=base_url,
+            timeout=httpx.Timeout(120.0, connect=10.0),
+            max_retries=2,
+        )
+        
+        # Validate credentials with a minimal request
+        try:
+            await self._client.models.list()
+            self._status = ProviderStatus.HEALTHY
+            logger.info(
+                "openai_adapter_initialized",
+                credential_id=self.credential_id
+            )
+        except Exception as e:
+            self._status = ProviderStatus.UNHEALTHY
+            raise AuthenticationError("openai") from e
+
+    async def complete(self, request: CompletionRequest) -> CompletionResponse:
+        """Execute completion request against OpenAI API."""
+        if not self._client:
+            raise ProviderError(
+                "Client not initialized", "openai", retryable=False
+            )
+        
+        model_info = self.select_model(request.model_tier)
+        model = request.model or (model_info.model_id if model_info else "gpt-4o-mini")
+        
+        # Build messages
+        messages = list(request.messages)
+        if request.system_prompt:
+            messages.insert(0, {"role": "system", "content": request.system_prompt})
+        
+        # Build kwargs
+        kwargs: Dict[str, Any] = {
+            "model": model,
+            "messages": messages,
+            "temperature": request.temperature,
+            "top_p": request.top_p,
+            "stream": False,
+        }
+        
+        if request.max_tokens:
+            kwargs["max_tokens"] = request.max_tokens
+        if request.stop:
+            kwargs["stop"] = request.stop
+        if request.json_mode:
+            kwargs["response_format"] = {"type": "json_object"}
+        if request.tools:
+            kwargs["tools"] = request.tools
+            if request.tool_choice:
+                kwargs["tool_choice"] = request.tool_choice
+        
+        start_time = time.monotonic()
+        
+        try:
+            response = await self._client.chat.completions.create(**kwargs)
+            latency = (time.monotonic() - start_time) * 1000
+            
+            usage = TokenUsage(
+                prompt_tokens=response.usage.prompt_tokens,
+                completion_tokens=response.usage.completion_tokens,
+                total_tokens=response.usage.total_tokens,
+                estimated_cost_usd=model_info.estimate_cost(
+                    response.usage.prompt_tokens,
+                    response.usage.completion_tokens
+                ) if model_info else 0.0,
+                model=model,
+                provider="openai",
+            )
+            
+            choice = response.choices[0]
+            
+            tool_calls = None
+            if choice.message.tool_calls:
+                tool_calls = [
+                    {
+                        "id": tc.id,
+                        "type": tc.type,
+                        "function": {
+                            "name": tc.function.name,
+                            "arguments": tc.function.arguments,
+                        }
+                    }
+                    for tc in choice.message.tool_calls
+                ]
+            
+            self._record_success()
+            
+            return CompletionResponse(
+                content=choice.message.content or "",
+                model=response.model,
+                provider="openai",
+                usage=usage,
+                finish_reason=choice.finish_reason,
+                request_id=request.request_id,
+                latency_ms=latency,
+                tool_calls=tool_calls,
+                raw_response=response.model_dump() if self.config.get("store_raw") else None,
+            )
+            
+        except OpenAIRateLimitError as e:
+            self._record_failure()
+            retry_after = float(e.response.headers.get("retry-after", 60))
+            raise RateLimitError("openai", retry_after=retry_after) from e
+        except APIError as e:
+            self._record_failure()
+            raise self.translate_error(e) from e
+
+    async def stream_complete(
+        self, request: CompletionRequest
+    ) -> AsyncIterator[str]:
+        """Stream completion tokens."""
+        if not self._client:
+            raise ProviderError("Client not initialized", "openai")
+        
+        model_info = self.select_model(request.model_tier)
+        model = request.model or (model_info.model_id if model_info else "gpt-4o-mini")
+        
+        messages = list(request.messages)
+        if request.system_prompt:
+            messages.insert(0, {"role": "system", "content": request.system_prompt})
+        
+        stream = await self._client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=request.temperature,
+            max_tokens=request.max_tokens,
+            stream=True,
+        )
+        
+        async for chunk in stream:
+            if chunk.choices and chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
+
+    async def embed(
+        self, texts: List[str], model: Optional[str] = None
+    ) -> List[List[float]]:
+        """Generate embeddings using OpenAI."""
+        if not self._client:
+            raise ProviderError("Client not initialized", "openai")
+        
+        model = model or "text-embedding-3-small"
+        response = await self._client.embeddings.create(
+            model=model,
+            input=texts,
+        )
+        return [item.embedding for item in response.data]
+
+    async def health_check(self) -> ProviderStatus:
+        """Lightweight health check."""
+        try:
+            await self._client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": "ping"}],
+                max_tokens=1,
+            )
+            self._status = ProviderStatus.HEALTHY
+        except OpenAIRateLimitError:
+            self._status = ProviderStatus.RATE_LIMITED
+        except Exception:
+            self._status = ProviderStatus.UNHEALTHY
+        
+        self._last_health_check = datetime.utcnow()
+        return self._status
+
+    async def get_quota(self) -> ProviderQuota:
+        """
+        OpenAI doesn't have a direct quota API, so we track usage
+        against contributor-set limits.
+        """
+        return self._quota
+
+    async def shutdown(self) -> None:
+        """Close the HTTP client."""
+        if self._client:
+            await self._client.close()
+            self._client = None
+        logger.info("openai_adapter_shutdown", credential_id=self.credential_id)
+
+    def translate_error(self, error: Exception) -> ProviderError:
+        """Translate OpenAI errors to unified errors."""
+        if isinstance(error, APIError):
+            if error.status_code == 401:
+                return AuthenticationError("openai")
+            if error.status_code == 429:
+                return RateLimitError("openai")
+            if error.status_code == 402:
+                return QuotaExhaustedError("openai")
+            return ProviderError(
+                str(error), "openai",
+                retryable=error.status_code in (500, 502, 503),
+                status_code=error.status_code
+            )
+        return ProviderError(str(error), "openai")
+```
+
+### 3\. Anthropic Adapter
+
+Python
+
+```
+# providers/adapters/anthropic_adapter.py
+"""Anthropic Claude provider adapter."""
+
+from __future__ import annotations
+
+import time
+from typing import Any, AsyncIterator, Dict, List, Optional
+
+import structlog
+from anthropic import AsyncAnthropic, APIError, RateLimitError as AnthropicRateLimit
+
+from providers.base import *
+from providers.registry import provider_registry
+from credentials.vault import CredentialVault
+
+logger = structlog.get_logger(__name__)
+
+ANTHROPIC_MODELS = [
+    ModelInfo(
+        model_id="claude-sonnet-4-20250514",
+        display_name="Claude Sonnet 4",
+        provider="anthropic",
+        tier=ModelTier.FRONTIER,
+        capabilities={
+            ProviderCapability.TEXT_GENERATION,
+            ProviderCapability.CODE_GENERATION,
+            ProviderCapability.CODE_REVIEW,
+            ProviderCapability.FUNCTION_CALLING,
+            ProviderCapability.STREAMING,
+            ProviderCapability.VISION,
+            ProviderCapability.LONG_CONTEXT,
+            ProviderCapability.STRUCTURED_OUTPUT,
+        },
+        max_context_tokens=200_000,
+        max_output_tokens=8_192,
+        cost_per_1m_input_tokens=3.00,
+        cost_per_1m_output_tokens=15.00,
+        supports_streaming=True,
+        supports_json_mode=True,
+    ),
+    ModelInfo(
+        model_id="claude-3-5-haiku-20241022",
+        display_name="Claude 3.5 Haiku",
+        provider="anthropic",
+        tier=ModelTier.STANDARD,
+        capabilities={
+            ProviderCapability.TEXT_GENERATION,
+            ProviderCapability.CODE_GENERATION,
+            ProviderCapability.CODE_REVIEW,
+            ProviderCapability.FUNCTION_CALLING,
+            ProviderCapability.STREAMING,
+        },
+        max_context_tokens=200_000,
+        max_output_tokens=8_192,
+        cost_per_1m_input_tokens=0.80,
+        cost_per_1m_output_tokens=4.00,
+        supports_streaming=True,
+        supports_json_mode=True,
+    ),
+]
+
+@provider_registry.register("anthropic")
+class AnthropicAdapter(AIProviderAdapter):
+    """Anthropic Claude provider adapter."""
+
+    def __init__(self, credential_id: str, config: Dict[str, Any] = None):
+        super().__init__(credential_id, config)
+        self._client: Optional[AsyncAnthropic] = None
+        self._vault = CredentialVault()
+
+    @property
+    def provider_name(self) -> str:
+        return "anthropic"
+
+    @property
+    def display_name(self) -> str:
+        return "Anthropic"
+
+    @property
+    def supported_capabilities(self) -> set[ProviderCapability]:
+        return {
+            ProviderCapability.TEXT_GENERATION,
+            ProviderCapability.CODE_GENERATION,
+            ProviderCapability.CODE_REVIEW,
+            ProviderCapability.FUNCTION_CALLING,
+            ProviderCapability.STREAMING,
+            ProviderCapability.VISION,
+            ProviderCapability.LONG_CONTEXT,
+            ProviderCapability.STRUCTURED_OUTPUT,
+        }
+
+    @property
+    def available_models(self) -> List[ModelInfo]:
+        return ANTHROPIC_MODELS
+
+    async def initialize(self) -> None:
+        api_key = await self._vault.get_secret(self.credential_id, "api_key")
+        self._client = AsyncAnthropic(api_key=api_key)
+        self._status = ProviderStatus.HEALTHY
+        logger.info("anthropic_adapter_initialized")
+
+    async def complete(self, request: CompletionRequest) -> CompletionResponse:
+        if not self._client:
+            raise ProviderError("Client not initialized", "anthropic")
+
+        model_info = self.select_model(request.model_tier)
+        model = request.model or (model_info.model_id if model_info else "claude-3-5-haiku-20241022")
+
+        # Anthropic uses a separate system parameter
+        system = request.system_prompt or ""
+        
+        # Filter out system messages from messages list (Anthropic API style)
+        messages = []
+        for msg in request.messages:
+            if msg["role"] == "system":
+                system = msg["content"]
+            else:
+                messages.append(msg)
+
+        kwargs: Dict[str, Any] = {
+            "model": model,
+            "messages": messages,
+            "max_tokens": request.max_tokens or 4096,
+            "temperature": request.temperature,
+        }
+        if system:
+            kwargs["system"] = system
+        if request.tools:
+            kwargs["tools"] = self._convert_tools(request.tools)
+        if request.stop:
+            kwargs["stop_sequences"] = request.stop
+
+        start_time = time.monotonic()
+        
+        try:
+            response = await self._client.messages.create(**kwargs)
+            latency = (time.monotonic() - start_time) * 1000
+
+            content = ""
+            tool_calls = []
+            for block in response.content:
+                if block.type == "text":
+                    content += block.text
+                elif block.type == "tool_use":
+                    tool_calls.append({
+                        "id": block.id,
+                        "type": "function",
+                        "function": {
+                            "name": block.name,
+                            "arguments": block.input,
+                        }
+                    })
+
+            usage = TokenUsage(
+                prompt_tokens=response.usage.input_tokens,
+                completion_tokens=response.usage.output_tokens,
+                total_tokens=response.usage.input_tokens + response.usage.output_tokens,
+                estimated_cost_usd=model_info.estimate_cost(
+                    response.usage.input_tokens,
+                    response.usage.output_tokens
+                ) if model_info else 0.0,
+                model=model,
+                provider="anthropic",
+            )
+
+            self._record_success()
+
+            return CompletionResponse(
+                content=content,
+                model=response.model,
+                provider="anthropic",
+                usage=usage,
+                finish_reason=response.stop_reason or "end_turn",
+                request_id=request.request_id,
+                latency_ms=latency,
+                tool_calls=tool_calls if tool_calls else None,
+            )
+
+        except AnthropicRateLimit as e:
+            self._record_failure()
+            raise RateLimitError("anthropic") from e
+        except APIError as e:
+            self._record_failure()
+            raise self.translate_error(e) from e
+
+    async def stream_complete(
+        self, request: CompletionRequest
+    ) -> AsyncIterator[str]:
+        if not self._client:
+            raise ProviderError("Client not initialized", "anthropic")
+        
+        model_info = self.select_model(request.model_tier)
+        model = request.model or (model_info.model_id if model_info else "claude-3-5-haiku-20241022")
+        
+        messages = [m for m in request.messages if m["role"] != "system"]
+        system = request.system_prompt or ""
+        for m in request.messages:
+            if m["role"] == "system":
+                system = m["content"]
+        
+        async with self._client.messages.stream(
+            model=model,
+            messages=messages,
+            system=system or None,
+            max_tokens=request.max_tokens or 4096,
+            temperature=request.temperature,
+        ) as stream:
+            async for text in stream.text_stream:
+                yield text
+
+    async def health_check(self) -> ProviderStatus:
+        try:
+            await self._client.messages.create(
+                model="claude-3-5-haiku-20241022",
+                messages=[{"role": "user", "content": "ping"}],
+                max_tokens=1,
+            )
+            self._status = ProviderStatus.HEALTHY
+        except AnthropicRateLimit:
+            self._status = ProviderStatus.RATE_LIMITED
+        except Exception:
+            self._status = ProviderStatus.UNHEALTHY
+        return self._status
+
+    async def get_quota(self) -> ProviderQuota:
+        return self._quota
+
+    async def shutdown(self) -> None:
+        if self._client:
+            await self._client.close()
+
+    def translate_error(self, error: Exception) -> ProviderError:
+        if isinstance(error, APIError):
+            if error.status_code == 401:
+                return AuthenticationError("anthropic")
+            if error.status_code == 429:
+                return RateLimitError("anthropic")
+            return ProviderError(
+                str(error), "anthropic",
+                retryable=error.status_code >= 500
+            )
+        return ProviderError(str(error), "anthropic")
+
+    def _convert_tools(self, openai_tools: List[Dict]) -> List[Dict]:
+        """Convert OpenAI-style tools to Anthropic format."""
+        anthropic_tools = []
+        for tool in openai_tools:
+            if tool.get("type") == "function":
+                func = tool["function"]
+                anthropic_tools.append({
+                    "name": func["name"],
+                    "description": func.get("description", ""),
+                    "input_schema": func.get("parameters", {}),
+                })
+        return anthropic_tools
+```
+
+### 4\. Provider Registry & Plugin Discovery
+
+Python
+
+```
+# providers/registry.py
+"""
+Auto-discovery plugin registry for provider adapters.
+Supports both decorator-based registration and dynamic loading.
+"""
+
+from __future__ import annotations
+
+import importlib
+import inspect
+import pkgutil
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Type
+
+import structlog
+
+from providers.base import AIProviderAdapter
+
+logger = structlog.get_logger(__name__)
+
+class ProviderRegistry:
+    """
+    Singleton registry for AI provider adapters.
+    
+    Supports three registration methods:
+    1. @provider_registry.register("name") decorator
+    2. Auto-discovery from providers/adapters/ directory
+    3. External plugin packages with entry_points
+    """
+    
+    _instance: Optional[ProviderRegistry] = None
+    
+    def __new__(cls) -> ProviderRegistry:
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._providers: Dict[str, Type[AIProviderAdapter]] = {}
+            cls._instance._metadata: Dict[str, Dict[str, Any]] = {}
+        return cls._instance
+    
+    def register(
+        self, 
+        name: str, 
+        metadata: Dict[str, Any] = None
+    ) -> Callable:
+        """
+        Decorator to register a provider adapter class.
+        
+        Usage:
+            @provider_registry.register("my_provider")
+            class MyProviderAdapter(AIProviderAdapter):
+                ...
+        """
+        def decorator(cls: Type[AIProviderAdapter]) -> Type[AIProviderAdapter]:
+            if not issubclass(cls, AIProviderAdapter):
+                raise TypeError(
+                    f"{cls.__name__} must be a subclass of AIProviderAdapter"
+                )
+            
+            self._providers[name] = cls
+            self._metadata[name] = metadata or {}
+            logger.info(
+                "provider_registered",
+                provider=name,
+                adapter_class=cls.__name__
+            )
+            return cls
+        
+        return decorator
+    
+    def register_class(
+        self, name: str, cls: Type[AIProviderAdapter],
+        metadata: Dict[str, Any] = None
+    ) -> None:
+        """Programmatic registration (for dynamic/external plugins)."""
+        if not issubclass(cls, AIProviderAdapter):
+            raise TypeError(
+                f"{cls.__name__} must be a subclass of AIProviderAdapter"
+            )
+        self._providers[name] = cls
+        self._metadata[name] = metadata or {}
+    
+    def get(self, name: str) -> Optional[Type[AIProviderAdapter]]:
+        """Get a registered provider adapter class by name."""
+        return self._providers.get(name)
+    
+    def create_adapter(
+        self, name: str, credential_id: str, 
+        config: Dict[str, Any] = None
+    ) -> AIProviderAdapter:
+        """Factory method to instantiate a provider adapter."""
+        adapter_cls = self._providers.get(name)
+        if not adapter_cls:
+            available = ", ".join(self._providers.keys())
+            raise ValueError(
+                f"Unknown provider '{name}'. Available: {available}"
+            )
+        return adapter_cls(credential_id=credential_id, config=config or {})
+    
+    @property
+    def available_providers(self) -> List[str]:
+        """List all registered provider names."""
+        return list(self._providers.keys())
+    
+    @property
+    def provider_info(self) -> Dict[str, Dict[str, Any]]:
+        """Get metadata about all registered providers."""
+        info = {}
+        for name, cls in self._providers.items():
+            adapter = cls.__new__(cls)
+            info[name] = {
+                "name": name,
+                "class": cls.__name__,
+                "display_name": getattr(adapter, "display_name", name),
+                "metadata": self._metadata.get(name, {}),
+            }
+        return info
+    
+    def auto_discover(self, package_path: str = "providers.adapters") -> None:
+        """
+        Auto-discover and import all adapter modules in the package.
+        This triggers the @register decorators.
+        """
+        try:
+            package = importlib.import_module(package_path)
+            package_dir = Path(package.__file__).parent
+            
+            for module_info in pkgutil.iter_modules([str(package_dir)]):
+                module_name = f"{package_path}.{module_info.name}"
+                try:
+                    importlib.import_module(module_name)
+                    logger.debug("auto_discovered_module", module=module_name)
+                except Exception as e:
+                    logger.warning(
+                        "auto_discover_failed",
+                        module=module_name,
+                        error=str(e)
+                    )
+        except ModuleNotFoundError:
+            logger.warning("auto_discover_package_not_found", package=package_path)
+    
+    def discover_entry_points(self, group: str = "aicontrib.providers") -> None:
+        """
+        Discover external provider plugins installed as packages
+        that use the entry_points mechanism.
+        
+        Example plugin pyproject.toml:
+            [project.entry-points."aicontrib.providers"]
+            my_provider = "my_package.adapter:MyProviderAdapter"
+        """
+        try:
+            from importlib.metadata import entry_points
+            
+            eps = entry_points()
+            # Python 3.12+ returns a dict-like; 3.9-3.11 returns SelectableGroups
+            if hasattr(eps, "select"):
+                provider_eps = eps.select(group=group)
+            else:
+                provider_eps = eps.get(group, [])
+            
+            for ep in provider_eps:
+                try:
+                    adapter_cls = ep.load()
+                    if issubclass(adapter_cls, AIProviderAdapter):
+                        self.register_class(ep.name, adapter_cls)
+                        logger.info(
+                            "external_plugin_loaded",
+                            provider=ep.name,
+                            package=ep.value
+                        )
+                except Exception as e:
+                    logger.error(
+                        "external_plugin_load_failed",
+                        provider=ep.name,
+                        error=str(e)
+                    )
+        except ImportError:
+            pass
+
+# Global singleton
+provider_registry = ProviderRegistry()
+```
+
+### 5\. Intelligent Request Router
+
+Python
+
+```
+# providers/router.py
+"""
+Intelligent multi-provider request router with load balancing,
+failover, cost optimization, and contributor budget enforcement.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import random
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum, auto
+from typing import Any, Dict, List, Optional, Tuple
+from uuid import UUID
+
+import structlog
+
+from providers.base import (
+    AIProviderAdapter,
+    CompletionRequest,
+    CompletionResponse,
+    ModelTier,
+    ProviderCapability,
+    ProviderError,
+    ProviderStatus,
+    QuotaExhaustedError,
+    RateLimitError,
+)
+from providers.registry import provider_registry
+from contributors.wallet import ContributorWallet
+
+logger = structlog.get_logger(__name__)
+
+class RoutingStrategy(Enum):
+    COST_OPTIMIZED = auto()      # Minimize cost
+    QUALITY_OPTIMIZED = auto()   # Use best available model
+    LATENCY_OPTIMIZED = auto()   # Use fastest provider
+    ROUND_ROBIN = auto()         # Distribute evenly
+    WEIGHTED_RANDOM = auto()     # Weighted by remaining budget
+    FAILOVER_CHAIN = auto()      # Primary → Secondary → Tertiary
+
+@dataclass
+class ProviderPool:
+    """Pool of available provider instances keyed by contributor."""
+    adapters: Dict[str, List[AIProviderAdapter]] = field(default_factory=dict)
+    # contributor_id -> list of their provider adapters
+    contributor_adapters: Dict[UUID, List[AIProviderAdapter]] = field(
+        default_factory=dict
+    )
+
+@dataclass
+class RoutingDecision:
+    """Record of a routing decision for audit trail."""
+    request_id: UUID
+    selected_provider: str
+    selected_model: str
+    contributor_id: UUID
+    strategy: RoutingStrategy
+    reason: str
+    alternatives_considered: List[str]
+    estimated_cost: float
+    timestamp: datetime = field(default_factory=datetime.utcnow)
+
+class AIRouter:
+    """
+    Routes AI requests across multiple providers and contributor budgets.
+    
+    Key responsibilities:
+    - Select optimal provider/model for each request
+    - Enforce contributor budget limits
+    - Handle failover across providers
+    - Balance load across contributor tokens
+    - Track and audit all routing decisions
+    """
+    
+    def __init__(
+        self,
+        strategy: RoutingStrategy = RoutingStrategy.COST_OPTIMIZED,
+        max_retries: int = 3,
+    ):
+        self.strategy = strategy
+        self.max_retries = max_retries
+        self._pool = ProviderPool()
+        self._wallets: Dict[UUID, ContributorWallet] = {}
+        self._routing_history: List[RoutingDecision] = []
+        self._lock = asyncio.Lock()
+    
+    async def register_contributor_provider(
+        self,
+        contributor_id: UUID,
+        provider_name: str,
+        credential_id: str,
+        config: Dict[str, Any] = None,
+        budget_limit_usd: Optional[float] = None,
+        token_limit: Optional[int] = None,
+    ) -> AIProviderAdapter:
+        """
+        Register a contributor's AI provider credentials.
+        Initializes the adapter and adds it to the routing pool.
+        """
+        adapter = provider_registry.create_adapter(
+            provider_name, credential_id, config
+        )
+        await adapter.initialize()
+        
+        async with self._lock:
+            # Add to provider pool
+            if provider_name not in self._pool.adapters:
+                self._pool.adapters[provider_name] = []
+            self._pool.adapters[provider_name].append(adapter)
+            
+            # Link to contributor
+            if contributor_id not in self._pool.contributor_adapters:
+                self._pool.contributor_adapters[contributor_id] = []
+            self._pool.contributor_adapters[contributor_id].append(adapter)
+            
+            # Set up wallet if budget specified
+            if budget_limit_usd or token_limit:
+                wallet = self._wallets.get(contributor_id) or ContributorWallet(
+                    contributor_id=contributor_id
+                )
+                wallet.set_budget(
+                    provider_name=provider_name,
+                    budget_usd=budget_limit_usd,
+                    token_limit=token_limit,
+                )
+                self._wallets[contributor_id] = wallet
+        
+        logger.info(
+            "contributor_provider_registered",
+            contributor_id=str(contributor_id),
+            provider=provider_name,
+            budget_usd=budget_limit_usd,
+        )
+        
+        return adapter
+    
+    async def route_request(
+        self, request: CompletionRequest
+    ) -> CompletionResponse:
+        """
+        Route a completion request to the optimal provider.
+        Handles retries, failover, and budget enforcement.
+        """
+        candidates = await self._get_candidates(request)
+        
+        if not candidates:
+            raise ProviderError(
+                "No available providers for this request",
+                provider="router",
+                retryable=False,
+            )
+        
+        last_error: Optional[Exception] = None
+        
+        for attempt in range(self.max_retries):
+            if not candidates:
+                break
+            
+            # Select best candidate based on strategy
+            adapter, contributor_id, model = self._select_candidate(
+                candidates, request
+            )
+            
+            # Check budget
+            wallet = self._wallets.get(contributor_id)
+            if wallet and not wallet.can_afford(
+                adapter.provider_name,
+                estimated_tokens=request.max_tokens or 4096
+            ):
+                logger.info(
+                    "budget_exceeded_skipping",
+                    contributor=str(contributor_id),
+                    provider=adapter.provider_name,
+                )
+                candidates.remove((adapter, contributor_id, model))
+                continue
+            
+            try:
+                # Set model on request if selected by router
+                request_copy = CompletionRequest(
+                    messages=request.messages,
+                    model=model,
+                    model_tier=request.model_tier,
+                    max_tokens=request.max_tokens,
+                    temperature=request.temperature,
+                    top_p=request.top_p,
+                    stop=request.stop,
+                    stream=request.stream,
+                    json_mode=request.json_mode,
+                    tools=request.tools,
+                    tool_choice=request.tool_choice,
+                    system_prompt=request.system_prompt,
+                    metadata=request.metadata,
+                    max_cost_usd=request.max_cost_usd,
+                    priority=request.priority,
+                    request_id=request.request_id,
+                    task_id=request.task_id,
+                    contributor_id=contributor_id,
+                )
+                
+                response = await adapter.complete(request_copy)
+                
+                # Deduct from wallet
+                if wallet:
+                    wallet.deduct(
+                        adapter.provider_name,
+                        tokens_used=response.usage.total_tokens,
+                        cost_usd=response.usage.estimated_cost_usd,
+                    )
+                
+                # Record routing decision
+                self._routing_history.append(RoutingDecision(
+                    request_id=request.request_id,
+                    selected_provider=adapter.provider_name,
+                    selected_model=response.model,
+                    contributor_id=contributor_id,
+                    strategy=self.strategy,
+                    reason=f"Selected on attempt {attempt + 1}",
+                    alternatives_considered=[
+                        a.provider_name for a, _, _ in candidates
+                    ],
+                    estimated_cost=response.usage.estimated_cost_usd,
+                ))
+                
+                return response
+                
+            except RateLimitError as e:
+                last_error = e
+                logger.warning(
+                    "rate_limited_trying_next",
+                    provider=adapter.provider_name,
+                    attempt=attempt + 1,
+                )
+                candidates.remove((adapter, contributor_id, model))
+                if e.retry_after and e.retry_after < 10:
+                    await asyncio.sleep(e.retry_after)
+                    
+            except QuotaExhaustedError as e:
+                last_error = e
+                candidates.remove((adapter, contributor_id, model))
+                if wallet:
+                    wallet.mark_exhausted(adapter.provider_name)
+                    
+            except ProviderError as e:
+                last_error = e
+                if not e.retryable:
+                    raise
+                candidates.remove((adapter, contributor_id, model))
+        
+        raise last_error or ProviderError(
+            "All providers exhausted", "router", retryable=False
+        )
+    
+    async def _get_candidates(
+        self, request: CompletionRequest
+    ) -> List[Tuple[AIProviderAdapter, UUID, str]]:
+        """Get all eligible (adapter, contributor_id, model) tuples."""
+        candidates = []
+        required_caps = self._infer_capabilities(request)
+        
+        for contributor_id, adapters in self._pool.contributor_adapters.items():
+            for adapter in adapters:
+                if not adapter.is_available:
+                    continue
+                
+                # Check capability match
+                if not required_caps.issubset(adapter.supported_capabilities):
+                    continue
+                
+                # Find suitable model
+                model_info = adapter.select_model(
+                    request.model_tier, required_caps
+                )
+                if model_info:
+                    candidates.append(
+                        (adapter, contributor_id, model_info.model_id)
+                    )
+        
+        return candidates
+    
+    def _select_candidate(
+        self,
+        candidates: List[Tuple[AIProviderAdapter, UUID, str]],
+        request: CompletionRequest,
+    ) -> Tuple[AIProviderAdapter, UUID, str]:
+        """Select the best candidate based on routing strategy."""
+        
+        if self.strategy == RoutingStrategy.COST_OPTIMIZED:
+            # Sort by model cost (cheapest first)
+            def cost_key(c):
+                adapter, _, model_id = c
+                model_info = next(
+                    (m for m in adapter.available_models if m.model_id == model_id),
+                    None
+                )
+                return model_info.cost_per_1m_output_tokens if model_info else float("inf")
+            return min(candidates, key=cost_key)
+        
+        elif self.strategy == RoutingStrategy.QUALITY_OPTIMIZED:
+            # Prefer frontier models
+            tier_priority = {
+                ModelTier.FRONTIER: 0,
+                ModelTier.STANDARD: 1,
+                ModelTier.EFFICIENT: 2,
+                ModelTier.SPECIALIZED: 1,
+            }
+            def quality_key(c):
+                adapter, _, model_id = c
+                model_info = next(
+                    (m for m in adapter.available_models if m.model_id == model_id),
+                    None
+                )
+                return tier_priority.get(model_info.tier, 3) if model_info else 3
+            return min(candidates, key=quality_key)
+        
+        elif self.strategy == RoutingStrategy.ROUND_ROBIN:
+            # Rotate through providers
+            idx = len(self._routing_history) % len(candidates)
+            return candidates[idx]
+        
+        elif self.strategy == RoutingStrategy.WEIGHTED_RANDOM:
+            # Weight by remaining budget
+            weights = []
+            for adapter, contributor_id, _ in candidates:
+                wallet = self._wallets.get(contributor_id)
+                if wallet:
+                    remaining = wallet.get_remaining_budget(adapter.provider_name)
+                    weights.append(max(remaining, 0.01))
+                else:
+                    weights.append(1.0)
+            return random.choices(candidates, weights=weights, k=1)[0]
+        
+        elif self.strategy == RoutingStrategy.LATENCY_OPTIMIZED:
+            # Prefer providers with lower historical latency
+            return candidates[0]  # Simplified; real impl would track latencies
+        
+        else:
+            return candidates[0]
+    
+    def _infer_capabilities(
+        self, request: CompletionRequest
+    ) -> set[ProviderCapability]:
+        """Infer required capabilities from the request."""
+        caps = {ProviderCapability.TEXT_GENERATION}
+        
+        if request.tools:
+            caps.add(ProviderCapability.FUNCTION_CALLING)
+        if request.stream:
+            caps.add(ProviderCapability.STREAMING)
+        if request.json_mode:
+            caps.add(ProviderCapability.STRUCTURED_OUTPUT)
+        
+        # Check if messages contain images
+        for msg in request.messages:
+            if isinstance(msg.get("content"), list):
+                for part in msg["content"]:
+                    if isinstance(part, dict) and part.get("type") == "image_url":
+                        caps.add(ProviderCapability.VISION)
+        
+        return caps
+    
+    async def get_pool_status(self) -> Dict[str, Any]:
+        """Get current status of all providers in the pool."""
+        status = {
+            "total_providers": sum(
+                len(adapters) for adapters in self._pool.adapters.values()
+            ),
+            "total_contributors": len(self._pool.contributor_adapters),
+            "providers": {},
+            "contributors": {},
+        }
+        
+        for name, adapters in self._pool.adapters.items():
+            status["providers"][name] = {
+                "instance_count": len(adapters),
+                "healthy": sum(1 for a in adapters if a.is_available),
+                "statuses": [a._status.value for a in adapters],
+            }
+        
+        for cid, wallet in self._wallets.items():
+            status["contributors"][str(cid)] = wallet.summary()
+        
+        return status
+```
+
+### 6\. Contributor Wallet & Budget Management
+
+Python
+
+```
+# contributors/wallet.py
+"""
+Token budget wallet for contributors.
+Tracks spending, enforces limits, and provides real-time budget status.
+"""
+
+from __future__ import annotations
+
+import asyncio
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+from uuid import UUID
+
+import structlog
+
+logger = structlog.get_logger(__name__)
+
+@dataclass
+class BudgetAllocation:
+    """Budget allocation for a specific provider."""
+    provider_name: str
+    budget_usd: Optional[float] = None       # Max spend in USD
+    token_limit: Optional[int] = None          # Max tokens
+    tokens_used: int = 0
+    cost_spent_usd: float = 0.0
+    request_count: int = 0
+    is_exhausted: bool = False
+    period: Optional[timedelta] = None         # Budget reset period
+    period_start: datetime = field(default_factory=datetime.utcnow)
+    
+    @property
+    def tokens_remaining(self) -> Optional[int]:
+        if self.token_limit is None:
+            return None
+        return max(0, self.token_limit - self.tokens_used)
+    
+    @property
+    def budget_remaining_usd(self) -> Optional[float]:
+        if self.budget_usd is None:
+            return None
+        return max(0.0, self.budget_usd - self.cost_spent_usd)
+    
+    @property
+    def utilization_pct(self) -> float:
+        if self.budget_usd:
+            return (self.cost_spent_usd / self.budget_usd) * 100
+        if self.token_limit:
+            return (self.tokens_used / self.token_limit) * 100
+        return 0.0
+    
+    def check_and_reset_period(self) -> bool:
+        """Reset budget if period has elapsed."""
+        if self.period and datetime.utcnow() - self.period_start > self.period:
+            self.tokens_used = 0
+            self.cost_spent_usd = 0.0
+            self.request_count = 0
+            self.is_exhausted = False
+            self.period_start = datetime.utcnow()
+            return True
+        return False
+
+@dataclass 
+class SpendingRecord:
+    """Immutable record of a spending event."""
+    timestamp: datetime
+    provider_name: str
+    model: str
+    tokens_used: int
+    cost_usd: float
+    task_id: Optional[UUID] = None
+    request_id: Optional[UUID] = None
+
+class ContributorWallet:
+    """
+    Manages a contributor's AI token budget across providers.
+    
+    Features:
+    - Per-provider budget limits (USD and/or tokens)
+    - Periodic budget reset (daily, weekly, monthly)
+    - Real-time spending tracking
+    - Budget warnings at thresholds
+    - Spending history and analytics
+    """
+    
+    WARN_THRESHOLDS = [0.5, 0.75, 0.90, 0.95]  # % utilization
+    
+    def __init__(self, contributor_id: UUID):
+        self.contributor_id = contributor_id
+        self._allocations: Dict[str, BudgetAllocation] = {}
+        self._spending_history: List[SpendingRecord] = []
+        self._lock = asyncio.Lock()
+        self._warned_thresholds: Dict[str, set] = {}  # provider -> set of warned %
+    
+    def set_budget(
+        self,
+        provider_name: str,
+        budget_usd: Optional[float] = None,
+        token_limit: Optional[int] = None,
+        period: Optional[timedelta] = None,
+    ) -> None:
+        """Set or update budget allocation for a provider."""
+        self._allocations[provider_name] = BudgetAllocation(
+            provider_name=provider_name,
+            budget_usd=budget_usd,
+            token_limit=token_limit,
+            period=period,
+        )
+        self._warned_thresholds[provider_name] = set()
+        logger.info(
+            "budget_set",
+            contributor=str(self.contributor_id),
+            provider=provider_name,
+            budget_usd=budget_usd,
+            token_limit=token_limit,
+        )
+    
+    def can_afford(
+        self, 
+        provider_name: str, 
+        estimated_tokens: int = 0,
+        estimated_cost_usd: float = 0.0,
+    ) -> bool:
+        """Check if the contributor can afford a request."""
+        alloc = self._allocations.get(provider_name)
+        if not alloc:
+            return True  # No budget set = unlimited
+        
+        alloc.check_and_reset_period()
+        
+        if alloc.is_exhausted:
+            return False
+        if alloc.token_limit and (alloc.tokens_used + estimated_tokens) > alloc.token_limit:
+            return False
+        if alloc.budget_usd and (alloc.cost_spent_usd + estimated_cost_usd) > alloc.budget_usd:
+            return False
+        
+        return True
+    
+    def deduct(
+        self,
+        provider_name: str,
+        tokens_used: int,
+        cost_usd: float,
+        model: str = "",
+        task_id: Optional[UUID] = None,
+        request_id: Optional[UUID] = None,
+    ) -> None:
+        """Deduct usage from the budget."""
+        alloc = self._allocations.get(provider_name)
+        if alloc:
+            alloc.tokens_used += tokens_used
+            alloc.cost_spent_usd += cost_usd
+            alloc.request_count += 1
+            
+            # Check thresholds
+            self._check_warnings(alloc)
+        
+        # Record spending
+        self._spending_history.append(SpendingRecord(
+            timestamp=datetime.utcnow(),
+            provider_name=provider_name,
+            model=model,
+            tokens_used=tokens_used,
+            cost_usd=cost_usd,
+            task_id=task_id,
+            request_id=request_id,
+        ))
+    
+    def mark_exhausted(self, provider_name: str) -> None:
+        """Mark a provider's budget as exhausted."""
+        alloc = self._allocations.get(provider_name)
+        if alloc:
+            alloc.is_exhausted = True
+            logger.warning(
+                "budget_exhausted",
+                contributor=str(self.contributor_id),
+                provider=provider_name,
+            )
+    
+    def get_remaining_budget(self, provider_name: str) -> float:
+        """Get remaining budget in USD (or large number if unlimited)."""
+        alloc = self._allocations.get(provider_name)
+        if not alloc or alloc.budget_usd is None:
+            return float("inf")
+        return alloc.budget_remaining_usd or 0.0
+    
+    def summary(self) -> Dict[str, Any]:
+        """Get wallet summary for dashboard."""
+        total_spent = sum(r.cost_usd for r in self._spending_history)
+        total_tokens = sum(r.tokens_used for r in self._spending_history)
+        
+        providers = {}
+        for name, alloc in self._allocations.items():
+            providers[name] = {
+                "budget_usd": alloc.budget_usd,
+                "spent_usd": alloc.cost_spent_usd,
+                "remaining_usd": alloc.budget_remaining_usd,
+                "token_limit": alloc.token_limit,
+                "tokens_used": alloc.tokens_used,
+                "tokens_remaining": alloc.tokens_remaining,
+                "utilization_pct": round(alloc.utilization_pct, 2),
+                "request_count": alloc.request_count,
+                "is_exhausted": alloc.is_exhausted,
+            }
+        
+        return {
+            "contributor_id": str(self.contributor_id),
+            "total_spent_usd": round(total_spent, 6),
+            "total_tokens_used": total_tokens,
+            "total_requests": len(self._spending_history),
+            "providers": providers,
+        }
+    
+    def _check_warnings(self, alloc: BudgetAllocation) -> None:
+        """Emit warnings when utilization crosses thresholds."""
+        utilization = alloc.utilization_pct / 100.0
+        warned = self._warned_thresholds.get(alloc.provider_name, set())
+        
+        for threshold in self.WARN_THRESHOLDS:
+            if utilization >= threshold and threshold not in warned:
+                warned.add(threshold)
+                logger.warning(
+                    "budget_threshold_crossed",
+                    contributor=str(self.contributor_id),
+                    provider=alloc.provider_name,
+                    threshold_pct=int(threshold * 100),
+                    utilization_pct=round(alloc.utilization_pct, 2),
+                    remaining_usd=alloc.budget_remaining_usd,
+                )
+        
+        self._warned_thresholds[alloc.provider_name] = warned
+```
+
+### 7\. Encrypted Credential Vault
+
+Python
+
+```
+# credentials/vault.py
+"""
+Encrypted credential storage with at-rest encryption,
+key rotation, and secure memory handling.
+"""
+
+from __future__ import annotations
+
+import base64
+import json
+import os
+import secrets
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+import structlog
+from cryptography.fernet import Fernet, MultiFernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
+logger = structlog.get_logger(__name__)
+
+class CredentialVault:
+    """
+    Secure credential storage with AES encryption.
+    
+    Security features:
+    - AES-256 encryption at rest (via Fernet = AES-CBC + HMAC-SHA256)
+    - Master key derived from passphrase via PBKDF2
+    - Key rotation support
+    - In-memory secret zeroing
+    - Audit logging of all access
+    - Support for external KMS (AWS KMS, HashiCorp Vault)
+    """
+    
+    def __init__(
+        self,
+        storage_path: Optional[Path] = None,
+        master_key: Optional[str] = None,
+        use_env_key: bool = True,
+    ):
+        self._storage_path = storage_path or Path.home() / ".aicontrib" / "vault.enc"
+        self._storage_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Derive encryption key
+        if master_key:
+            self._fernet = self._derive_fernet(master_key)
+        elif use_env_key and os.environ.get("AICONTRIB_VAULT_KEY"):
+            self._fernet = Fernet(os.environ["AICONTRIB_VAULT_KEY"].encode())
+        else:
+            # Generate and store a new key (first run)
+            key_path = self._storage_path.parent / ".vault_key"
+            if key_path.exists():
+                self._fernet = Fernet(key_path.read_bytes())
+            else:
+                key = Fernet.generate_key()
+                key_path.write_bytes(key)
+                key_path.chmod(0o600)
+                self._fernet = Fernet(key)
+        
+        self._cache: Dict[str, Dict[str, str]] = {}
+        self._load()
+    
+    def _derive_fernet(self, passphrase: str) -> Fernet:
+        """Derive encryption key from passphrase using PBKDF2."""
+        salt_path = self._storage_path.parent / ".vault_salt"
+        if salt_path.exists():
+            salt = salt_path.read_bytes()
+        else:
+            salt = os.urandom(16)
+            salt_path.write_bytes(salt)
+            salt_path.chmod(0o600)
+        
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=salt,
+            iterations=600_000,
+        )
+        key = base64.urlsafe_b64encode(kdf.derive(passphrase.encode()))
+        return Fernet(key)
+    
+    def _load(self) -> None:
+        """Load and decrypt the vault."""
+        if self._storage_path.exists():
+            encrypted = self._storage_path.read_bytes()
+            try:
+                decrypted = self._fernet.decrypt(encrypted)
+                self._cache = json.loads(decrypted)
+            except Exception:
+                logger.error("vault_decryption_failed")
+                self._cache = {}
+        else:
+            self._cache = {}
+    
+    def _save(self) -> None:
+        """Encrypt and save the vault."""
+        plaintext = json.dumps(self._cache).encode()
+        encrypted = self._fernet.encrypt(plaintext)
+        self._storage_path.write_bytes(encrypted)
+        self._storage_path.chmod(0o600)
+    
+    async def store_credentials(
+        self,
+        credential_id: str,
+        secrets: Dict[str, str],
+        metadata: Dict[str, Any] = None,
+    ) -> None:
+        """
+        Store encrypted credentials.
+        
+        Args:
+            credential_id: Unique identifier (e.g., "contrib_123_openai")
+            secrets: Key-value pairs (e.g., {"api_key": "sk-...", "org_id": "org-..."})
+            metadata: Non-secret metadata
+        """
+        self._cache[credential_id] = {
+            "secrets": secrets,
+            "metadata": metadata or {},
+            "created_at": datetime.utcnow().isoformat(),
+            "last_accessed": None,
+        }
+        self._save()
+        
+        logger.info(
+            "credentials_stored",
+            credential_id=credential_id,
+            secret_keys=list(secrets.keys()),
+        )
+    
+    async def get_secret(
+        self,
+        credential_id: str,
+        key: str,
+        required: bool = True,
+    ) -> Optional[str]:
+        """Retrieve a specific secret value."""
+        cred = self._cache.get(credential_id)
+        if not cred:
+            if required:
+                raise KeyError(f"Credential '{credential_id}' not found")
+            return None
+        
+        value = cred["secrets"].get(key)
+        if value is None and required:
+            raise KeyError(
+                f"Secret key '{key}' not found in credential '{credential_id}'"
+            )
+        
+        # Update last accessed
+        cred["last_accessed"] = datetime.utcnow().isoformat()
+        self._save()
+        
+        logger.debug(
+            "secret_accessed",
+            credential_id=credential_id,
+            key=key,
+        )
+        
+        return value
+    
+    async def delete_credentials(self, credential_id: str) -> bool:
+        """Securely delete credentials."""
+        if credential_id in self._cache:
+            # Overwrite in memory before deletion
+            for key in self._cache[credential_id].get("secrets", {}):
+                self._cache[credential_id]["secrets"][key] = "x" * 64
+            del self._cache[credential_id]
+            self._save()
+            logger.info("credentials_deleted", credential_id=credential_id)
+            return True
+        return False
+    
+    async def list_credentials(self) -> Dict[str, Dict[str, Any]]:
+        """List all stored credentials (metadata only, no secrets)."""
+        result = {}
+        for cred_id, data in self._cache.items():
+            result[cred_id] = {
+                "credential_id": cred_id,
+                "secret_keys": list(data.get("secrets", {}).keys()),
+                "metadata": data.get("metadata", {}),
+                "created_at": data.get("created_at"),
+                "last_accessed": data.get("last_accessed"),
+            }
+        return result
+    
+    async def rotate_key(self, new_passphrase: str) -> None:
+        """Rotate the encryption key. Re-encrypts all data."""
+        new_fernet = self._derive_fernet(new_passphrase)
+        self._fernet = new_fernet
+        self._save()
+        logger.info("vault_key_rotated")
+```
+
+### 8\. Task Decomposition & Development Pipeline
+
+Python
+
+````
+# tasks/decomposer.py
+"""
+AI-powered task decomposition engine.
+Takes issues/feature requests and breaks them into AI-executable tasks.
+"""
+
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from typing import Any, Dict, List, Optional
+from uuid import UUID, uuid4
+
+import structlog
+
+from providers.base import CompletionRequest, ModelTier
+from providers.router import AIRouter
+
+logger = structlog.get_logger(__name__)
+
+class TaskType(Enum):
+    CODE_GENERATION = "code_generation"
+    CODE_REVIEW = "code_review"
+    BUG_FIX = "bug_fix"
+    REFACTORING = "refactoring"
+    TEST_GENERATION = "test_generation"
+    DOCUMENTATION = "documentation"
+    ARCHITECTURE_DESIGN = "architecture_design"
+    TRANSLATION = "translation"
+    SECURITY_AUDIT = "security_audit"
+    PERFORMANCE_OPTIMIZATION = "performance_optimization"
+
+class TaskPriority(Enum):
+    CRITICAL = 1
+    HIGH = 2
+    MEDIUM = 3
+    LOW = 4
+    BACKGROUND = 5
+
+class TaskStatus(Enum):
+    PENDING = "pending"
+    ESTIMATING = "estimating"
+    QUEUED = "queued"
+    IN_PROGRESS = "in_progress"
+    REVIEW = "review"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+@dataclass
+class AITask:
+    """A single AI-executable task."""
+    id: UUID = field(default_factory=uuid4)
+    parent_id: Optional[UUID] = None        # Parent task/issue
+    project_id: Optional[UUID] = None
+    
+    task_type: TaskType = TaskType.CODE_GENERATION
+    title: str = ""
+    description: str = ""
+    context: str = ""                        # Relevant code/docs context
+    
+    # Execution parameters
+    model_tier: ModelTier = ModelTier.STANDARD
+    estimated_tokens: int = 0
+    estimated_cost_usd: float = 0.0
+    max_cost_usd: Optional[float] = None
+    
+    # Dependencies
+    depends_on: List[UUID] = field(default_factory=list)
+    
+    # Status
+    status: TaskStatus = TaskStatus.PENDING
+    priority: TaskPriority = TaskPriority.MEDIUM
+    
+    # Results
+    output: Optional[str] = None
+    output_files: Dict[str, str] = field(default_factory=dict)  # path -> content
+    review_comments: List[str] = field(default_factory=list)
+    
+    # Metadata
+    created_at: str = ""
+    completed_at: Optional[str] = None
+    assigned_contributor: Optional[UUID] = None
+    assigned_provider: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+DECOMPOSITION_PROMPT = """You are a senior software architect decomposing a development task into AI-executable subtasks.
+
+## Project Context
+{project_context}
+
+## Issue/Feature Request
+Title: {issue_title}
+Description: {issue_description}
+Labels: {labels}
+
+## Existing Codebase Context
+{code_context}
+
+## Instructions
+Decompose this into specific, self-contained AI tasks. Each task should be:
+1. Small enough for a single AI completion (ideally < 4000 output tokens)
+2. Have clear inputs and expected outputs
+3. Include file paths for generated/modified code
+4. Specify dependencies on other tasks
+
+Return a JSON array of tasks with this structure:
+```json
+[
+  {{
+    "title": "Descriptive task title",
+    "description": "Detailed instructions for the AI to execute this task",
+    "task_type": "code_generation|code_review|bug_fix|test_generation|documentation|refactoring",
+    "model_tier": "standard|frontier|efficient",
+    "estimated_output_tokens": 2000,
+    "depends_on_indices": [],
+    "output_files": ["path/to/file.py"],
+    "context_files": ["path/to/relevant/file.py"],
+    "priority": "high|medium|low"
+  }}
+]
+````
+
+Be thorough but practical. Prefer smaller, focused tasks over large monolithic ones.  
+"""
+
+class TaskDecomposer:  
+"""  
+Uses AI to decompose issues into executable tasks.  
+Self-referential: uses the contributor pool to power decomposition itself.  
+"""
+
+text
+
+```
+def __init__(self, router: AIRouter):
+    self.router = router
+
+async def decompose_issue(
+    self,
+    issue_title: str,
+    issue_description: str,
+    project_context: str = "",
+    code_context: str = "",
+    labels: List[str] = None,
+) -> List[AITask]:
+    """
+    Decompose a GitHub issue or feature request into AI tasks.
+    Uses a frontier model for best decomposition quality.
+    """
+    prompt = DECOMPOSITION_PROMPT.format(
+        project_context=project_context or "No project context provided.",
+        issue_title=issue_title,
+        issue_description=issue_description,
+        labels=", ".join(labels or []),
+        code_context=code_context or "No code context provided.",
+    )
+    
+    request = CompletionRequest(
+        messages=[{"role": "user", "content": prompt}],
+        model_tier=ModelTier.FRONTIER,  # Use best model for planning
+        temperature=0.3,  # Low temp for structured output
+        json_mode=True,
+        max_tokens=4096,
+        metadata={"stage": "decomposition"},
+    )
+    
+    response = await self.router.route_request(request)
+    
+    try:
+        tasks_data = json.loads(response.content)
+        if isinstance(tasks_data, dict) and "tasks" in tasks_data:
+            tasks_data = tasks_data["tasks"]
+    except json.JSONDecodeError:
+        logger.error("decomposition_json_parse_failed", content=response.content[:200])
+        # Fall back to single task
+        tasks_data = [{
+            "title": issue_title,
+            "description": issue_description,
+            "task_type": "code_generation",
+            "model_tier": "standard",
+            "estimated_output_tokens": 4000,
+            "depends_on_indices": [],
+            "output_files": [],
+            "priority": "medium",
+        }]
+    
+    tasks = []
+    task_ids = []
+    
+    for i, task_data in enumerate(tasks_data):
+        task = AITask(
+            title=task_data.get("title", f"Task {i+1}"),
+            description=task_data.get("description", ""),
+            task_type=TaskType(task_data.get("task_type", "code_generation")),
+            model_tier=self._parse_tier(task_data.get("model_tier", "standard")),
+            estimated_tokens=task_data.get("estimated_output_tokens", 2000),
+            priority=self._parse_priority(task_data.get("priority", "medium")),
+            metadata={
+                "output_files": task_data.get("output_files", []),
+                "context_files": task_data.get("context_files", []),
+                "source_issue": issue_title,
+            },
+        )
+        tasks.append(task)
+        task_ids.append(task.id)
+    
+    # Resolve dependencies
+    for i, task_data in enumerate(tasks_data):
+        dep_indices = task_data.get("depends_on_indices", [])
+        for dep_idx in dep_indices:
+            if 0 <= dep_idx < len(task_ids) and dep_idx != i:
+                tasks[i].depends_on.append(task_ids[dep_idx])
+    
+    # Estimate costs
+    for task in tasks:
+        task.estimated_cost_usd = self._estimate_cost(task)
+    
+    logger.info(
+        "issue_decomposed",
+        issue=issue_title,
+        task_count=len(tasks),
+        total_estimated_tokens=sum(t.estimated_tokens for t in tasks),
+        total_estimated_cost=sum(t.estimated_cost_usd for t in tasks),
+    )
+    
+    return tasks
+
+def _parse_tier(self, tier_str: str) -> ModelTier:
+    mapping = {
+        "frontier": ModelTier.FRONTIER,
+        "standard": ModelTier.STANDARD,
+        "efficient": ModelTier.EFFICIENT,
+        "specialized": ModelTier.SPECIALIZED,
+    }
+    return mapping.get(tier_str.lower(), ModelTier.STANDARD)
+
+def _parse_priority(self, priority_str: str) -> TaskPriority:
+    mapping = {
+        "critical": TaskPriority.CRITICAL,
+        "high": TaskPriority.HIGH,
+        "medium": TaskPriority.MEDIUM,
+        "low": TaskPriority.LOW,
+    }
+    return mapping.get(priority_str.lower(), TaskPriority.MEDIUM)
+
+def _estimate_cost(self, task: AITask) -> float:
+    """Rough cost estimate based on model tier and tokens."""
+    # Average cost per 1M output tokens by tier
+    tier_costs = {
+        ModelTier.FRONTIER: 15.0,
+        ModelTier.STANDARD: 2.0,
+        ModelTier.EFFICIENT: 0.5,
+        ModelTier.SPECIALIZED: 5.0,
+    }
+    cost_per_1m = tier_costs.get(task.model_tier, 2.0)
+    # Assume input is ~2x output for context
+    input_cost = (task.estimated_tokens * 2 / 1_000_000) * (cost_per_1m / 3)
+    output_cost = (task.estimated_tokens / 1_000_000) * cost_per_1m
+    return round(input_cost + output_cost, 6)
+```
+
+text
+
+````
+
+### 9. Task Executor & Development Pipeline
+
+```python
+# tasks/executor.py
+"""
+Task execution engine - executes AI tasks using the provider pool.
+"""
+
+from __future__ import annotations
+
+import asyncio
+from collections import defaultdict
+from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional
+from uuid import UUID
+
+import structlog
+
+from providers.base import CompletionRequest
+from providers.router import AIRouter
+from tasks.decomposer import AITask, TaskStatus, TaskType
+
+logger = structlog.get_logger(__name__)
+
+# ── Task Prompt Templates ──────────────────────────────────────────
+
+TASK_PROMPTS = {
+    TaskType.CODE_GENERATION: """You are an expert software engineer. Generate production-quality code.
+
+## Task
+{description}
+
+## Context
+{context}
+
+## Requirements
+- Write clean, well-documented code
+- Follow the project's existing code style
+- Include type hints (for Python) or appropriate types
+- Handle edge cases and errors
+- DO NOT include explanations outside of code comments
+
+## Output Format
+Return ONLY the code, wrapped in appropriate markdown code blocks with filenames:
+```filename:path/to/file.ext
+// code here
+````
+
+""",
+
+text
+
+```
+TaskType.CODE_REVIEW: """You are a senior code reviewer. Review the following code changes.
+```
+
+## Code to Review
+
+{context}
+
+## Task
+
+{description}
+
+## Review Criteria
+
+-   Correctness and logic errors
+-   Security vulnerabilities
+-   Performance issues
+-   Code style and best practices
+-   Test coverage gaps
+
+Provide specific, actionable feedback with line references.  
+""",
+
+text
+
+```
+TaskType.TEST_GENERATION: """You are a test engineering expert. Generate comprehensive tests.
+```
+
+## Code Under Test
+
+{context}
+
+## Task
+
+{description}
+
+## Requirements
+
+-   Cover happy path, edge cases, and error scenarios
+-   Use appropriate testing framework (pytest for Python, jest for JS)
+-   Include both unit and integration tests where appropriate
+-   Use descriptive test names
+-   Mock external dependencies
+
+Return ONLY test code in markdown code blocks with filenames.  
+""",
+
+text
+
+```
+TaskType.BUG_FIX: """You are a debugging expert. Fix the following bug.
+```
+
+## Bug Description
+
+{description}
+
+## Relevant Code
+
+{context}
+
+## Requirements
+
+-   Identify the root cause
+-   Provide a minimal fix
+-   Explain the fix in a code comment
+-   Ensure the fix doesn't introduce regressions
+
+Return the fixed code in markdown code blocks with filenames.  
+""",
+
+text
+
+```
+TaskType.DOCUMENTATION: """You are a technical writer. Write clear documentation.
+```
+
+## Code/Feature to Document
+
+{context}
+
+## Task
+
+{description}
+
+## Requirements
+
+-   Clear, concise language
+    
+-   Include code examples where appropriate
+    
+-   Follow the project's documentation style
+    
+-   Include API references if applicable  
+    """,
+    
+    TaskType.REFACTORING: """You are a refactoring expert. Improve the following code.
+    
+
+## Code to Refactor
+
+{context}
+
+## Task
+
+{description}
+
+## Requirements
+
+-   Maintain existing functionality (no behavior changes)
+-   Improve readability and maintainability
+-   Apply appropriate design patterns
+-   Reduce complexity where possible
+
+Return the refactored code in markdown code blocks with filenames.  
+""",  
+}
+
+class TaskExecutor:  
+"""  
+Executes AI tasks using the multi-provider router.  
+Supports dependency resolution, parallel execution, and validation.  
+"""
+
+text
+
+```
+def __init__(
+    self, 
+    router: AIRouter,
+    max_concurrent: int = 5,
+    on_task_complete: Optional[Callable] = None,
+    on_task_failed: Optional[Callable] = None,
+):
+    self.router = router
+    self.max_concurrent = max_concurrent
+    self.on_task_complete = on_task_complete
+    self.on_task_failed = on_task_failed
+    self._semaphore = asyncio.Semaphore(max_concurrent)
+    self._completed_tasks: Dict[UUID, AITask] = {}
+
+async def execute_tasks(
+    self, 
+    tasks: List[AITask],
+    project_context: str = "",
+) -> List[AITask]:
+    """
+    Execute a list of tasks respecting dependencies.
+    Tasks without dependencies run in parallel.
+    """
+    # Build dependency graph
+    remaining = {t.id: t for t in tasks}
+    completed: Dict[UUID, AITask] = {}
+    failed: Dict[UUID, AITask] = {}
+    
+    while remaining:
+        # Find tasks whose dependencies are all met
+        ready = [
+            task for task in remaining.values()
+            if all(dep in completed for dep in task.depends_on)
+        ]
+        
+        if not ready:
+            # Check for dependency deadlock
+            unmet = {
+                tid: [d for d in t.depends_on if d not in completed]
+                for tid, t in remaining.items()
+            }
+            logger.error("dependency_deadlock", unmet=unmet)
+            for task in remaining.values():
+                task.status = TaskStatus.FAILED
+                failed[task.id] = task
+            break
+        
+        # Execute ready tasks in parallel
+        results = await asyncio.gather(
+            *[
+                self._execute_single_task(
+                    task, completed, project_context
+                ) 
+                for task in ready
+            ],
+            return_exceptions=True,
+        )
+        
+        for task, result in zip(ready, results):
+            if isinstance(result, Exception):
+                task.status = TaskStatus.FAILED
+                task.output = str(result)
+                failed[task.id] = task
+                if self.on_task_failed:
+                    await self.on_task_failed(task, result)
+            else:
+                completed[task.id] = task
+                if self.on_task_complete:
+                    await self.on_task_complete(task)
+            
+            remaining.pop(task.id, None)
+    
+    self._completed_tasks.update(completed)
+    all_tasks = list(completed.values()) + list(failed.values())
+    
+    logger.info(
+        "task_batch_complete",
+        total=len(tasks),
+        completed=len(completed),
+        failed=len(failed),
+    )
+    
+    return all_tasks
+
+async def _execute_single_task(
+    self,
+    task: AITask,
+    completed_tasks: Dict[UUID, AITask],
+    project_context: str,
+) -> None:
+    """Execute a single AI task."""
+    async with self._semaphore:
+        task.status = TaskStatus.IN_PROGRESS
+        
+        logger.info(
+            "task_executing",
+            task_id=str(task.id),
+            title=task.title,
+            type=task.task_type.value,
+            tier=task.model_tier.value,
+        )
+        
+        # Build context from dependencies
+        dep_context = ""
+        for dep_id in task.depends_on:
+            dep_task = completed_tasks.get(dep_id)
+            if dep_task and dep_task.output:
+                dep_context += f"\n## Output from '{dep_task.title}':\n{dep_task.output}\n"
+        
+        full_context = f"{project_context}\n{task.context}\n{dep_context}"
+        
+        # Get prompt template
+        prompt_template = TASK_PROMPTS.get(
+            task.task_type,
+            TASK_PROMPTS[TaskType.CODE_GENERATION]
+        )
+        
+        prompt = prompt_template.format(
+            description=task.description,
+            context=full_context.strip(),
+        )
+        
+        request = CompletionRequest(
+            messages=[{"role": "user", "content": prompt}],
+            model_tier=task.model_tier,
+            max_tokens=min(task.estimated_tokens * 2, 16384),
+            temperature=0.3 if task.task_type in (
+                TaskType.BUG_FIX, TaskType.CODE_REVIEW
+            ) else 0.5,
+            max_cost_usd=task.max_cost_usd,
+            task_id=task.id,
+            priority=task.priority.value,
+            metadata={"task_type": task.task_type.value},
+        )
+        
+        response = await self.router.route_request(request)
+        
+        task.output = response.content
+        task.status = TaskStatus.COMPLETED
+        task.completed_at = datetime.utcnow().isoformat()
+        task.assigned_provider = response.provider
+        task.metadata["actual_tokens"] = response.usage.total_tokens
+        task.metadata["actual_cost_usd"] = response.usage.estimated_cost_usd
+        task.metadata["model_used"] = response.model
+        task.metadata["latency_ms"] = response.latency_ms
+        
+        # Parse output files from markdown code blocks
+        task.output_files = self._parse_code_blocks(response.content)
+        
+        logger.info(
+            "task_completed",
+            task_id=str(task.id),
+            title=task.title,
+            tokens=response.usage.total_tokens,
+            cost_usd=response.usage.estimated_cost_usd,
+            provider=response.provider,
+            model=response.model,
+            files_generated=len(task.output_files),
+        )
+
+def _parse_code_blocks(self, content: str) -> Dict[str, str]:
+    """Extract code blocks with filenames from AI output."""
+    files = {}
+    lines = content.split("\n")
+    current_file = None
+    current_code = []
+    in_block = False
+    
+    for line in lines:
+        if line.startswith("```") and not in_block:
+            in_block = True
+            # Check for filename pattern: ```filename:path/to/file.py
+            header = line[3:].strip()
+            if "filename:" in header:
+                current_file = header.split("filename:")[1].strip()
+            elif "/" in header or "." in header:
+                # Try to parse as filename
+                potential_file = header.split()[0] if header else None
+                if potential_file and ("/" in potential_file or "." in potential_file):
+                    current_file = potential_file
+            current_code = []
+        elif line.startswith("```") and in_block:
+            in_block = False
+            if current_file and current_code:
+                files[current_file] = "\n".join(current_code)
+            current_file = None
+            current_code = []
+        elif in_block:
+            current_code.append(line)
+    
+    return files
+```
+
+text
+
+````
+
+### 10. Core Orchestrator
+
+```python
+# core/orchestrator.py
+"""
+Central orchestrator that ties everything together.
+Manages the full lifecycle from issue to merged PR.
+"""
+
+from __future__ import annotations
+
+import asyncio
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+from uuid import UUID, uuid4
+
+import structlog
+
+from core.event_bus import EventBus, Event
+from contributors.wallet import ContributorWallet
+from credentials.vault import CredentialVault
+from providers.registry import provider_registry
+from providers.router import AIRouter, RoutingStrategy
+from tasks.decomposer import AITask, TaskDecomposer
+from tasks.executor import TaskExecutor
+
+logger = structlog.get_logger(__name__)
+
+@dataclass
+class ContributorRegistration:
+    """Registration data for a new contributor."""
+    contributor_id: UUID = field(default_factory=uuid4)
+    name: str = ""
+    email: Optional[str] = None
+    github_username: Optional[str] = None
+    providers: List[Dict[str, Any]] = field(default_factory=list)
+    # Each provider: {"name": "openai", "api_key": "sk-...", "budget_usd": 10.0}
+
+@dataclass
+class ProjectConfig:
+    """Configuration for a project using AIContrib."""
+    project_id: UUID = field(default_factory=uuid4)
+    name: str = ""
+    repo_url: str = ""
+    description: str = ""
+    default_branch: str = "main"
+    routing_strategy: RoutingStrategy = RoutingStrategy.COST_OPTIMIZED
+    max_cost_per_issue_usd: float = 5.0
+    auto_merge: bool = False
+    require_human_review: bool = True
+    allowed_task_types: List[str] = field(default_factory=lambda: [
+        "code_generation", "test_generation", "documentation",
+        "bug_fix", "code_review", "refactoring"
+    ])
+
+class AIContribOrchestrator:
+    """
+    Main orchestrator for the AIContrib system.
+    
+    This is the primary entry point that coordinates:
+    - Contributor registration and credential management
+    - Project configuration
+    - Issue decomposition into AI tasks
+    - Task execution across contributor-provided AI resources
+    - Result aggregation and PR creation
+    """
+    
+    def __init__(self):
+        self.vault = CredentialVault()
+        self.event_bus = EventBus()
+        self.router = AIRouter(strategy=RoutingStrategy.COST_OPTIMIZED)
+        self.decomposer = TaskDecomposer(self.router)
+        self.executor = TaskExecutor(
+            router=self.router,
+            on_task_complete=self._on_task_complete,
+            on_task_failed=self._on_task_failed,
+        )
+        self._projects: Dict[UUID, ProjectConfig] = {}
+        self._contributors: Dict[UUID, ContributorRegistration] = {}
+        self._active_jobs: Dict[UUID, Dict[str, Any]] = {}
+        
+        # Auto-discover providers
+        provider_registry.auto_discover()
+        provider_registry.discover_entry_points()
+    
+    # ── Contributor Management ─────────────────────────────────────
+    
+    async def register_contributor(
+        self, registration: ContributorRegistration
+    ) -> UUID:
+        """
+        Register a new contributor with their AI provider credentials.
+        
+        Example:
+            reg = ContributorRegistration(
+                name="Alice",
+                providers=[
+                    {
+                        "name": "openai",
+                        "api_key": "sk-...",
+                        "budget_usd": 25.0,
+                        "token_limit": 1_000_000,
+                    },
+                    {
+                        "name": "anthropic",
+                        "api_key": "sk-ant-...",
+                        "budget_usd": 15.0,
+                    },
+                ]
+            )
+            contributor_id = await orchestrator.register_contributor(reg)
+        """
+        contributor_id = registration.contributor_id
+        
+        for provider_config in registration.providers:
+            provider_name = provider_config["name"]
+            credential_id = f"{contributor_id}_{provider_name}"
+            
+            # Store credentials securely
+            secrets = {}
+            for key in ["api_key", "api_secret", "access_token", "org_id"]:
+                if key in provider_config:
+                    secrets[key] = provider_config.pop(key)
+            
+            await self.vault.store_credentials(
+                credential_id=credential_id,
+                secrets=secrets,
+                metadata={
+                    "contributor_id": str(contributor_id),
+                    "provider": provider_name,
+                    "contributor_name": registration.name,
+                },
+            )
+            
+            # Register with router
+            await self.router.register_contributor_provider(
+                contributor_id=contributor_id,
+                provider_name=provider_name,
+                credential_id=credential_id,
+                config=provider_config.get("config", {}),
+                budget_limit_usd=provider_config.get("budget_usd"),
+                token_limit=provider_config.get("token_limit"),
+            )
+        
+        self._contributors[contributor_id] = registration
+        
+        await self.event_bus.emit(Event(
+            type="contributor.registered",
+            data={
+                "contributor_id": str(contributor_id),
+                "name": registration.name,
+                "providers": [p["name"] for p in registration.providers],
+            },
+        ))
+        
+        logger.info(
+            "contributor_registered",
+            contributor_id=str(contributor_id),
+            name=registration.name,
+            provider_count=len(registration.providers),
+        )
+        
+        return contributor_id
+    
+    # ── Project Management ─────────────────────────────────────────
+    
+    async def register_project(self, config: ProjectConfig) -> UUID:
+        """Register a project to receive AI contributions."""
+        self._projects[config.project_id] = config
+        self.router.strategy = config.routing_strategy
+        
+        logger.info(
+            "project_registered",
+            project_id=str(config.project_id),
+            name=config.name,
+        )
+        return config.project_id
+    
+    # ── Issue Processing ───────────────────────────────────────────
+    
+    async def process_issue(
+        self,
+        project_id: UUID,
+        issue_title: str,
+        issue_description: str,
+        labels: List[str] = None,
+        code_context: str = "",
+        priority: str = "medium",
+    ) -> Dict[str, Any]:
+        """
+        Process an issue end-to-end:
+        1. Decompose into AI tasks
+        2. Estimate costs
+        3. Execute tasks using contributor tokens
+        4. Return results (code, tests, docs)
+        
+        This is the main entry point for automated development.
+        """
+        project = self._projects.get(project_id)
+        if not project:
+            raise ValueError(f"Project {project_id} not registered")
+        
+        job_id = uuid4()
+        
+        logger.info(
+            "processing_issue",
+            job_id=str(job_id),
+            project=project.name,
+            issue=issue_title,
+        )
+        
+        # Step 1: Decompose
+        await self.event_bus.emit(Event(
+            type="job.decomposing", 
+            data={"job_id": str(job_id), "issue": issue_title}
+        ))
+        
+        tasks = await self.decomposer.decompose_issue(
+            issue_title=issue_title,
+            issue_description=issue_description,
+            project_context=project.description,
+            code_context=code_context,
+            labels=labels,
+        )
+        
+        # Step 2: Cost check
+        total_estimated_cost = sum(t.estimated_cost_usd for t in tasks)
+        if total_estimated_cost > project.max_cost_per_issue_usd:
+            logger.warning(
+                "issue_too_expensive",
+                estimated_cost=total_estimated_cost,
+                limit=project.max_cost_per_issue_usd,
+            )
+            # Could auto-adjust by using cheaper models
+            for task in tasks:
+                task.model_tier = ModelTier.EFFICIENT
+        
+        # Step 3: Execute
+        await self.event_bus.emit(Event(
+            type="job.executing",
+            data={
+                "job_id": str(job_id),
+                "task_count": len(tasks),
+                "estimated_cost": total_estimated_cost,
+            }
+        ))
+        
+        completed_tasks = await self.executor.execute_tasks(
+            tasks=tasks,
+            project_context=project.description,
+        )
+        
+        # Step 4: Aggregate results
+        result = self._aggregate_results(job_id, completed_tasks)
+        
+        await self.event_bus.emit(Event(
+            type="job.completed",
+            data={
+                "job_id": str(job_id),
+                **result["summary"],
+            }
+        ))
+        
+        return result
+    
+    def _aggregate_results(
+        self, job_id: UUID, tasks: List[AITask]
+    ) -> Dict[str, Any]:
+        """Aggregate task results into a unified output."""
+        all_files: Dict[str, str] = {}
+        total_cost = 0.0
+        total_tokens = 0
+        successful = 0
+        failed = 0
+        
+        for task in tasks:
+            if task.status.value == "completed":
+                successful += 1
+                all_files.update(task.output_files)
+                total_cost += task.metadata.get("actual_cost_usd", 0)
+                total_tokens += task.metadata.get("actual_tokens", 0)
+            else:
+                failed += 1
+        
+        return {
+            "job_id": str(job_id),
+            "files": all_files,
+            "tasks": [
+                {
+                    "id": str(t.id),
+                    "title": t.title,
+                    "type": t.task_type.value,
+                    "status": t.status.value,
+                    "output": t.output,
+                    "files": t.output_files,
+                    "cost_usd": t.metadata.get("actual_cost_usd", 0),
+                    "tokens": t.metadata.get("actual_tokens", 0),
+                    "model": t.metadata.get("model_used", ""),
+                    "provider": t.assigned_provider,
+                }
+                for t in tasks
+            ],
+            "summary": {
+                "total_tasks": len(tasks),
+                "successful": successful,
+                "failed": failed,
+                "total_cost_usd": round(total_cost, 6),
+                "total_tokens": total_tokens,
+                "files_generated": len(all_files),
+            },
+        }
+    
+    async def _on_task_complete(self, task: AITask) -> None:
+        """Callback when a task completes."""
+        await self.event_bus.emit(Event(
+            type="task.completed",
+            data={
+                "task_id": str(task.id),
+                "title": task.title,
+                "cost_usd": task.metadata.get("actual_cost_usd", 0),
+            }
+        ))
+    
+    async def _on_task_failed(self, task: AITask, error: Exception) -> None:
+        """Callback when a task fails."""
+        await self.event_bus.emit(Event(
+            type="task.failed",
+            data={
+                "task_id": str(task.id),
+                "title": task.title,
+                "error": str(error),
+            }
+        ))
+    
+    # ── Status & Analytics ─────────────────────────────────────────
+    
+    async def get_status(self) -> Dict[str, Any]:
+        """Get comprehensive system status."""
+        pool_status = await self.router.get_pool_status()
+        
+        return {
+            "system": "aicontrib",
+            "version": "0.1.0",
+            "providers": provider_registry.available_providers,
+            "registered_contributors": len(self._contributors),
+            "registered_projects": len(self._projects),
+            "pool": pool_status,
+            "active_jobs": len(self._active_jobs),
+        }
+````
+
+### 11\. Event Bus
+
+Python
+
+```
+# core/event_bus.py
+"""
+Async event bus for system-wide communication and plugin hooks.
+"""
+
+from __future__ import annotations
+
+import asyncio
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any, Callable, Coroutine, Dict, List, Optional
+from uuid import UUID, uuid4
+
+import structlog
+
+logger = structlog.get_logger(__name__)
+
+EventHandler = Callable[["Event"], Coroutine[Any, Any, None]]
+
+@dataclass
+class Event:
+    """System event."""
+    type: str                                    # e.g., "task.completed"
+    data: Dict[str, Any] = field(default_factory=dict)
+    id: UUID = field(default_factory=uuid4)
+    timestamp: datetime = field(default_factory=datetime.utcnow)
+    source: str = "system"
+
+class EventBus:
+    """
+    Async event bus supporting:
+    - Pub/sub with pattern matching (e.g., "task.*")
+    - Event history for audit
+    - Webhook forwarding
+    """
+    
+    def __init__(self, max_history: int = 10000):
+        self._handlers: Dict[str, List[EventHandler]] = {}
+        self._history: List[Event] = []
+        self._max_history = max_history
+    
+    def on(self, event_type: str, handler: EventHandler) -> None:
+        """Register a handler for an event type. Supports wildcards."""
+        if event_type not in self._handlers:
+            self._handlers[event_type] = []
+        self._handlers[event_type].append(handler)
+    
+    async def emit(self, event: Event) -> None:
+        """Emit an event to all matching handlers."""
+        self._history.append(event)
+        if len(self._history) > self._max_history:
+            self._history = self._history[-self._max_history:]
+        
+        handlers = list(self._handlers.get(event.type, []))
+        
+        # Match wildcard handlers (e.g., "task.*" matches "task.completed")
+        for pattern, pattern_handlers in self._handlers.items():
+            if pattern.endswith("*"):
+                prefix = pattern[:-1]
+                if event.type.startswith(prefix) and pattern != event.type:
+                    handlers.extend(pattern_handlers)
+        
+        # Also trigger catch-all
+        handlers.extend(self._handlers.get("*", []))
+        
+        for handler in handlers:
+            try:
+                await handler(event)
+            except Exception as e:
+                logger.error(
+                    "event_handler_error",
+                    event_type=event.type,
+                    handler=handler.__name__,
+                    error=str(e),
+                )
+    
+    def get_history(
+        self, 
+        event_type: Optional[str] = None,
+        limit: int = 100,
+    ) -> List[Event]:
+        """Get event history, optionally filtered."""
+        events = self._history
+        if event_type:
+            events = [e for e in events if e.type == event_type]
+        return events[-limit:]
+```
+
+### 12\. API Layer
+
+Python
+
+```
+# api/app.py
+"""
+FastAPI application providing the REST API and WebSocket interface.
+"""
+
+from __future__ import annotations
+
+from contextlib import asynccontextmanager
+from typing import Any, Dict, List, Optional
+from uuid import UUID
+
+from fastapi import FastAPI, HTTPException, WebSocket, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+
+from core.orchestrator import (
+    AIContribOrchestrator,
+    ContributorRegistration,
+    ProjectConfig,
+)
+from providers.router import RoutingStrategy
+
+# ── Pydantic Models ────────────────────────────────────────────────
+
+class ProviderInput(BaseModel):
+    name: str = Field(..., description="Provider name (e.g., 'openai', 'anthropic')")
+    api_key: str = Field(..., description="API key (encrypted at rest)")
+    budget_usd: Optional[float] = Field(None, description="Max spend in USD")
+    token_limit: Optional[int] = Field(None, description="Max tokens to consume")
+    config: Dict[str, Any] = Field(default_factory=dict)
+
+class ContributorInput(BaseModel):
+    name: str
+    email: Optional[str] = None
+    github_username: Optional[str] = None
+    providers: List[ProviderInput]
+
+class ProjectInput(BaseModel):
+    name: str
+    repo_url: str
+    description: str = ""
+    routing_strategy: str = "cost_optimized"
+    max_cost_per_issue_usd: float = 5.0
+    require_human_review: bool = True
+
+class IssueInput(BaseModel):
+    title: str
+    description: str
+    labels: List[str] = Field(default_factory=list)
+    code_context: str = ""
+    priority: str = "medium"
+
+# ── App Setup ──────────────────────────────────────────────────────
+
+orchestrator: Optional[AIContribOrchestrator] = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global orchestrator
+    orchestrator = AIContribOrchestrator()
+    yield
+    # Cleanup
+
+app = FastAPI(
+    title="AIContrib",
+    description="Open Source AI-Powered Contribution System",
+    version="0.1.0",
+    lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+def get_orchestrator() -> AIContribOrchestrator:
+    if orchestrator is None:
+        raise HTTPException(500, "System not initialized")
+    return orchestrator
+
+# ── Routes ─────────────────────────────────────────────────────────
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "service": "aicontrib"}
+
+@app.get("/status")
+async def system_status(orch: AIContribOrchestrator = Depends(get_orchestrator)):
+    return await orch.get_status()
+
+# ── Contributors ───────────────────────────────────────────────────
+
+@app.post("/contributors", status_code=201)
+async def register_contributor(
+    data: ContributorInput,
+    orch: AIContribOrchestrator = Depends(get_orchestrator),
+):
+    """Register a contributor with their AI provider credentials."""
+    reg = ContributorRegistration(
+        name=data.name,
+        email=data.email,
+        github_username=data.github_username,
+        providers=[p.model_dump() for p in data.providers],
+    )
+    
+    contributor_id = await orch.register_contributor(reg)
+    
+    return {
+        "contributor_id": str(contributor_id),
+        "name": data.name,
+        "providers_registered": len(data.providers),
+        "message": "Contributor registered successfully. Credentials encrypted at rest.",
+    }
+
+@app.get("/contributors/{contributor_id}/wallet")
+async def get_wallet(
+    contributor_id: UUID,
+    orch: AIContribOrchestrator = Depends(get_orchestrator),
+):
+    """Get contributor's wallet/budget status."""
+    wallet = orch.router._wallets.get(contributor_id)
+    if not wallet:
+        raise HTTPException(404, "Contributor not found")
+    return wallet.summary()
+
+# ── Projects ───────────────────────────────────────────────────────
+
+@app.post("/projects", status_code=201)
+async def register_project(
+    data: ProjectInput,
+    orch: AIContribOrchestrator = Depends(get_orchestrator),
+):
+    """Register a project to receive AI contributions."""
+    strategy_map = {
+        "cost_optimized": RoutingStrategy.COST_OPTIMIZED,
+        "quality_optimized": RoutingStrategy.QUALITY_OPTIMIZED,
+        "round_robin": RoutingStrategy.ROUND_ROBIN,
+        "weighted_random": RoutingStrategy.WEIGHTED_RANDOM,
+    }
+    
+    config = ProjectConfig(
+        name=data.name,
+        repo_url=data.repo_url,
+        description=data.description,
+        routing_strategy=strategy_map.get(
+            data.routing_strategy, RoutingStrategy.COST_OPTIMIZED
+        ),
+        max_cost_per_issue_usd=data.max_cost_per_issue_usd,
+        require_human_review=data.require_human_review,
+    )
+    
+    project_id = await orch.register_project(config)
+    return {"project_id": str(project_id), "name": data.name}
+
+# ── Issues → AI Processing ────────────────────────────────────────
+
+@app.post("/projects/{project_id}/issues")
+async def process_issue(
+    project_id: UUID,
+    data: IssueInput,
+    orch: AIContribOrchestrator = Depends(get_orchestrator),
+):
+    """
+    Submit an issue for AI processing.
+    The system decomposes it into tasks and executes them
+    using contributor-provided AI tokens.
+    """
+    result = await orch.process_issue(
+        project_id=project_id,
+        issue_title=data.title,
+        issue_description=data.description,
+        labels=data.labels,
+        code_context=data.code_context,
+        priority=data.priority,
+    )
+    return result
+
+# ── Providers ──────────────────────────────────────────────────────
+
+@app.get("/providers")
+async def list_providers():
+    """List all available AI provider adapters."""
+    from providers.registry import provider_registry
+    return {
+        "providers": provider_registry.available_providers,
+        "details": provider_registry.provider_info,
+    }
+
+# ── WebSocket for real-time updates ───────────────────────────────
+
+@app.websocket("/ws/events")
+async def websocket_events(
+    websocket: WebSocket,
+    orch: AIContribOrchestrator = Depends(get_orchestrator),
+):
+    """Real-time event stream via WebSocket."""
+    await websocket.accept()
+    
+    async def forward_event(event):
+        try:
+            await websocket.send_json({
+                "type": event.type,
+                "data": event.data,
+                "timestamp": event.timestamp.isoformat(),
+            })
+        except Exception:
+            pass
+    
+    orch.event_bus.on("*", forward_event)
+    
+    try:
+        while True:
+            await websocket.receive_text()  # Keep alive
+    except Exception:
+        pass
+```
+
+### 13\. CLI Interface
+
+Python
+
+```
+# cli/main.py
+"""
+CLI for AIContrib - manage contributions from the command line.
+"""
+
+import asyncio
+import json
+import sys
+from pathlib import Path
+from typing import Optional
+from uuid import uuid4
+
+import click
+import yaml
+
+@click.group()
+@click.version_option(version="0.1.0")
+def cli():
+    """AIContrib - Open Source AI Contribution System"""
+    pass
+
+@cli.command()
+@click.option("--interactive", "-i", is_flag=True, help="Interactive setup wizard")
+def init(interactive: bool):
+    """Initialize AIContrib in the current project."""
+    config_path = Path(".aicontrib.yml")
+    
+    if interactive:
+        click.echo("🚀 AIContrib Setup Wizard\n")
+        
+        name = click.prompt("Project name")
+        repo = click.prompt("Repository URL")
+        description = click.prompt("Project description", default="")
+        strategy = click.prompt(
+            "Routing strategy",
+            type=click.Choice(["cost_optimized", "quality_optimized", "round_robin"]),
+            default="cost_optimized",
+        )
+        max_cost = click.prompt("Max cost per issue (USD)", type=float, default=5.0)
+        
+        config = {
+            "project": {
+                "name": name,
+                "repo_url": repo,
+                "description": description,
+            },
+            "settings": {
+                "routing_strategy": strategy,
+                "max_cost_per_issue_usd": max_cost,
+                "require_human_review": True,
+            },
+            "contributors": [],
+        }
+    else:
+        config = {
+            "project": {
+                "name": Path.cwd().name,
+                "repo_url": "",
+                "description": "",
+            },
+            "settings": {
+                "routing_strategy": "cost_optimized",
+                "max_cost_per_issue_usd": 5.0,
+                "require_human_review": True,
+            },
+            "contributors": [],
+        }
+    
+    config_path.write_text(yaml.dump(config, default_flow_style=False))
+    click.echo(f"\n✅ Created {config_path}")
+    click.echo("Next: Add contributors with `aicontrib contribute add`")
+
+@cli.group()
+def contribute():
+    """Manage AI contributions."""
+    pass
+
+@contribute.command("add")
+@click.option("--name", prompt="Your name")
+@click.option(
+    "--provider", 
+    prompt="AI Provider",
+    type=click.Choice(["openai", "anthropic", "google", "mistral", "local"]),
+)
+@click.option("--api-key", prompt="API Key", hide_input=True)
+@click.option("--budget", prompt="Monthly budget (USD)", type=float, default=10.0)
+@click.option("--token-limit", type=int, default=None, help="Max tokens")
+def contribute_add(
+    name: str, provider: str, api_key: str, 
+    budget: float, token_limit: Optional[int]
+):
+    """Add yourself as an AI contributor."""
+    
+    async def _add():
+        from core.orchestrator import AIContribOrchestrator, ContributorRegistration
+        
+        orch = AIContribOrchestrator()
+        
+        reg = ContributorRegistration(
+            name=name,
+            providers=[{
+                "name": provider,
+                "api_key": api_key,
+                "budget_usd": budget,
+                "token_limit": token_limit,
+            }],
+        )
+        
+        contributor_id = await orch.register_contributor(reg)
+        
+        click.echo(f"\n✅ Registered as contributor!")
+        click.echo(f"   ID: {contributor_id}")
+        click.echo(f"   Provider: {provider}")
+        click.echo(f"   Budget: ${budget}/month")
+        if token_limit:
+            click.echo(f"   Token limit: {token_limit:,}")
+        click.echo(f"\n🔒 Your API key is encrypted at rest.")
+    
+    asyncio.run(_add())
+
+@contribute.command("status")
+def contribute_status():
+    """Show contribution status and spending."""
+    
+    async def _status():
+        from core.orchestrator import AIContribOrchestrator
+        orch = AIContribOrchestrator()
+        status = await orch.get_status()
+        
+        click.echo("\n📊 AIContrib Status\n")
+        click.echo(f"  Contributors: {status['registered_contributors']}")
+        click.echo(f"  Projects: {status['registered_projects']}")
+        click.echo(f"  Available Providers: {', '.join(status['providers'])}")
+        
+        pool = status.get("pool", {})
+        if pool.get("contributors"):
+            click.echo("\n  💰 Contributor Budgets:")
+            for cid, wallet in pool["contributors"].items():
+                for provider, info in wallet.get("providers", {}).items():
+                    click.echo(
+                        f"    {provider}: "
+                        f"${info.get('spent_usd', 0):.4f} / "
+                        f"${info.get('budget_usd', '∞')} "
+                        f"({info.get('utilization_pct', 0):.1f}%)"
+                    )
+    
+    asyncio.run(_status())
+
+@cli.command()
+@click.argument("issue_title")
+@click.option("--description", "-d", default="", help="Issue description")
+@click.option("--project-id", default=None, help="Project ID")
+@click.option("--context-file", type=click.Path(exists=True), help="Code context file")
+def process(
+    issue_title: str, description: str, 
+    project_id: Optional[str], context_file: Optional[str]
+):
+    """Process an issue using AI contributions."""
+    
+    async def _process():
+        from core.orchestrator import AIContribOrchestrator, ProjectConfig
+        from uuid import UUID
+        
+        orch = AIContribOrchestrator()
+        
+        # Load or create project
+        if project_id:
+            pid = UUID(project_id)
+        else:
+            config_path = Path(".aicontrib.yml")
+            if config_path.exists():
+                config = yaml.safe_load(config_path.read_text())
+                proj_config = ProjectConfig(
+                    name=config["project"]["name"],
+                    description=config["project"].get("description", ""),
+                )
+                pid = await orch.register_project(proj_config)
+            else:
+                click.echo("❌ No project configured. Run `aicontrib init` first.")
+                return
+        
+        code_context = ""
+        if context_file:
+            code_context = Path(context_file).read_text()
+        
+        click.echo(f"\n🔄 Processing: {issue_title}\n")
+        
+        result = await orch.process_issue(
+            project_id=pid,
+            issue_title=issue_title,
+            issue_description=description,
+            code_context=code_context,
+        )
+        
+        summary = result["summary"]
+        click.echo(f"\n✅ Complete!")
+        click.echo(f"   Tasks: {summary['successful']}/{summary['total_tasks']} succeeded")
+        click.echo(f"   Cost: ${summary['total_cost_usd']:.4f}")
+        click.echo(f"   Tokens: {summary['total_tokens']:,}")
+        click.echo(f"   Files: {summary['files_generated']}")
+        
+        if result["files"]:
+            click.echo(f"\n📁 Generated Files:")
+            for filepath, content in result["files"].items():
+                click.echo(f"   {filepath} ({len(content)} chars)")
+                
+                # Optionally write files
+                if click.confirm(f"   Write {filepath}?", default=False):
+                    Path(filepath).parent.mkdir(parents=True, exist_ok=True)
+                    Path(filepath).write_text(content)
+                    click.echo(f"   ✅ Written")
+    
+    asyncio.run(_process())
+
+if __name__ == "__main__":
+    cli()
+```
+
+### 14\. Configuration File Spec
+
+YAML
+
+```
+# .aicontrib.yml - Project configuration
+project:
+  name: "my-awesome-project"
+  repo_url: "https://github.com/org/my-awesome-project"
+  description: "A Python web framework for building APIs"
+  default_branch: "main"
+
+settings:
+  routing_strategy: "cost_optimized"  # cost_optimized | quality_optimized | round_robin | weighted_random
+  max_cost_per_issue_usd: 5.00
+  require_human_review: true
+  auto_create_pr: true
+  
+  # Task settings
+  max_concurrent_tasks: 5
+  default_model_tier: "standard"       # frontier | standard | efficient
+  
+  # Safety
+  max_file_changes_per_issue: 20
+  forbidden_paths:                     # Paths AI should never modify
+    - ".env"
+    - "secrets/"
+    - "*.key"
+    - "*.pem"
+
+# Contributors can be defined here or added via CLI/API
+contributors:
+  - name: "Alice"
+    github: "alice-dev"
+    providers:
+      - name: "openai"
+        budget_usd: 25.00
+        token_limit: 2000000
+        # API key stored in vault, not in config!
+      - name: "anthropic"
+        budget_usd: 15.00
+
+  - name: "Bob"
+    github: "bob-coder"
+    providers:
+      - name: "openai"
+        budget_usd: 10.00
+      - name: "local"
+        config:
+          base_url: "http://localhost:11434"
+          model: "codellama:34b"
+        # No budget limit for local models
+
+# GitHub App / Webhook integration
+integrations:
+  github:
+    app_id: "${GITHUB_APP_ID}"
+    webhook_secret: "${GITHUB_WEBHOOK_SECRET}"
+    auto_label: 
+```
+
+## Message from claude-opus-4-6
+
+Previous slideNext slide
+
+Design a Future-Proof, SOTA, OpenSource Contribution system such that contributors can plug in their AI APIs or User Accounts and set contribution amounts, and the system will leverage the Contributors AI tokens automatically to the project development
+
+Add files
+
+Inputs are processed by third-party AI and responses may be inaccurate.
+
+Your conversations and certain other personal information will be disclosed to the relevant AI providers and may otherwise be disclosed publicly to help support our community and advance AI research.
+
+Do not submit to our Services any personal information or other sensitive information that you would not want to be shared publicly. By continuing to use our Services, you acknowledge and direct us to engage in such sharing.
+
+## Embedded Content
