@@ -369,6 +369,7 @@ model Target {
   capabilities   Capability[]
   blueprints     Blueprint[]
   generationRuns GenerationRun[]
+  masterPlan     MasterPlan?
 
   @@index([kind])
   @@index([familyId])
@@ -1109,4 +1110,575 @@ model TopicNode {
   @@index([parentId])
   @@index([targetId, path])
   @@map("topic_nodes")
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
+// LAYER 8: INTELLIGENT PIPELINE — Plans, coverage tracking, request flow
+//
+// The "brain" of the generation system. Unlike the raw request queue from
+// before, this layer THINKS before it generates. Every API call is justified
+// by a coverage gap identified through structured analysis.
+// ════════════════════════════════════════════════════════════════════════════════
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+/// The lifecycle of a generation plan for a specific target
+enum PlanStatus {
+  DRAFT // Plan created but not yet analyzed for coverage
+  ANALYZING // Coverage analyzer is running
+  READY // Analysis complete, work items queued
+  IN_PROGRESS // Generation actively running
+  PAUSED // Manually paused or waiting on dependency
+  COMPLETED // All phases done, validation passed
+  FAILED // Unrecoverable failure
+}
+
+/// The 12 phases from the pipeline spec, plus meta-phases
+enum PipelinePhase {
+  // Meta-phases (the intelligent layer)
+  COVERAGE_ANALYSIS // Assess what we already have
+  PLAN_GENERATION // Build the master plan
+  DEPENDENCY_RESOLUTION // Identify cross-target reuse
+
+  // Part A: Reference Layer
+  DECOMPOSE_TOPIC_TREE // Phase 1
+  ENUMERATE_ANCHORS // Phase 2
+  GENERATE_REFERENCE // Phase 3
+  GAP_ANALYSIS // Phase 4
+  FILL_GAPS // Phase 5
+  VALIDATE_ACCURACY // Phase 6
+
+  // Part B: Implementation Layer
+  ENUMERATE_CAPABILITIES // Phase 7
+  EXTRACT_ATOMS // Phase 8
+  EXTRACT_ALGORITHMS // Phase 9
+  GENERATE_IMPL_SPECS // Phase 10
+  ASSEMBLE_BLUEPRINTS // Phase 11
+  VALIDATE_IMPLEMENTATIONS // Phase 12
+}
+
+/// Status of individual work items within a phase
+enum WorkItemStatus {
+  NOT_STARTED
+  BLOCKED // Waiting on a dependency
+  READY // All deps met, queued for execution
+  IN_PROGRESS // API call in flight
+  PARSE_FAILED // Got response but couldn't parse
+  RETRY_QUEUED // Parse failed, queued for retry with different strategy
+  GENERATED // Parsed successfully, awaiting validation
+  VALIDATED // Passed validation, committed to DB
+  FAILED // Exhausted retries
+  SKIPPED // Deduplicated or deemed unnecessary
+}
+
+/// Which model tier to use for a work item
+enum ModelTier {
+  CHEAP // gpt-4o-mini, claude-3-haiku — structural tasks
+  MID // claude-3.5-sonnet, gpt-4o — bulk content
+  EXPENSIVE // o1, claude-3-opus — validation, reasoning
+}
+
+/// Classification of why a work item exists
+enum WorkItemReason {
+  INITIAL_PLAN // Part of the original plan
+  GAP_DETECTED // Coverage analysis found a gap
+  ANCHOR_MISMATCH // Completeness anchor revealed missing item
+  CROSS_REFERENCE // Discovered during relation building
+  VALIDATION_FAILURE // Previous attempt failed validation
+  DECAY_REFRESH // Content went stale
+  DEPENDENCY_CASCADE // Auto-created because something needs it
+  MANUAL // Human-initiated
+}
+
+/// What kind of deduplication was applied
+enum DeduplicationAction {
+  NONE // No duplicate found, generate fresh
+  FULL_REUSE // Exact match exists, just create graph edge
+  PARTIAL_REUSE // Similar content exists, generate delta only
+  CROSS_TARGET_LINK // Same concept in different target, link + diff
+}
+
+// ─── Master Plan ─────────────────────────────────────────────────────────────
+
+/// MasterPlan — The intelligent generation plan for a single target.
+///
+/// Before ANY API call fires, the pipeline builds a MasterPlan that:
+///   1. Inventories what already exists in the database for this target
+///   2. Maps the full knowledge space that SHOULD exist
+///   3. Computes the delta (what's missing)
+///   4. Orders work items by dependency + cost efficiency
+///   5. Identifies cross-target reuse opportunities
+///
+/// ~1,000 rows at scale (one per target).
+model MasterPlan {
+  id       String     @id @default(cuid())
+  targetId String     @unique @map("target_id")
+  status   PlanStatus @default(DRAFT)
+
+  /// ── Wave assignment ──
+  /// Targets are generated in waves to maximize deduplication.
+  /// Wave 1 seeds foundational knowledge; later waves reuse it.
+  wave      Int @default(99) /// 1=foundation, 2=related, 3=complex, 4=tools
+  waveOrder Int @default(0) @map("wave_order") /// Order within wave
+
+  /// ── Coverage snapshot (computed by CoverageAnalyzer) ──
+  /// Taken BEFORE generation starts, and updated after each phase completes.
+  coverageSnapshot Json @default("{}") @map("coverage_snapshot")
+
+  /// ── Phase progress ──
+  currentPhase  PipelinePhase? @map("current_phase")
+  phaseProgress Json           @default("{}") @map("phase_progress")
+
+  /// ── Cost tracking ──
+  estimatedCostUsd Float @default(0.0) @map("estimated_cost_usd")
+  actualCostUsd    Float @default(0.0) @map("actual_cost_usd")
+  totalApiCalls    Int   @default(0) @map("total_api_calls")
+  totalTokensUsed  Int   @default(0) @map("total_tokens_used")
+  savedByDedup     Float @default(0.0) @map("saved_by_dedup") /// USD saved via reuse
+
+  /// ── Budget controls ──
+  maxBudgetUsd Float @default(10.0) @map("max_budget_usd")
+
+  /// ── Cross-target reuse map ──
+  /// Computed during DEPENDENCY_RESOLUTION phase.
+  /// Lists algorithms, concepts, and atoms from OTHER targets that this
+  /// target can reuse instead of regenerating.
+  reuseMap Json @default("{}") @map("reuse_map")
+
+  /// ── Scheduling ──
+  startedAt      DateTime? @map("started_at")
+  completedAt    DateTime? @map("completed_at")
+  lastActivityAt DateTime? @map("last_activity_at")
+
+  /// ── Link to generation run ──
+  generationRunId String? @map("generation_run_id")
+
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // ── Relations ──
+  target    Target     @relation(fields: [targetId], references: [id])
+  workItems WorkItem[]
+  petitions Petition[]
+
+  @@index([status])
+  @@index([wave, waveOrder])
+  @@map("master_plans")
+}
+
+// ─── Work Items ──────────────────────────────────────────────────────────────
+
+/// WorkItem — A single unit of work in the generation pipeline.
+///
+/// Every API call is represented by exactly one WorkItem. This is the
+/// atomic unit of the production line. Unlike the previous DataRequest
+/// design which was a generic queue, WorkItems are:
+///
+///   1. Always part of a MasterPlan (no orphan requests)
+///   2. Always assigned to a specific phase
+///   3. Always have a model tier assignment
+///   4. Always have deduplication checked BEFORE generation
+///   5. Always carry their full prompt context (no re-discovery)
+///
+/// ~5,000,000 rows at scale.
+model WorkItem {
+  id     String         @id @default(cuid())
+  planId String         @map("plan_id")
+  phase  PipelinePhase
+  status WorkItemStatus @default(NOT_STARTED)
+
+  /// ── What is being generated? ──
+  entityType     String  @map("entity_type") /// "entry"|"atom"|"algorithm"|...
+  targetEntityId String? @map("target_entity_id") /// Pre-computed ID for the result
+  title          String /// Human-readable: "Entry: Python/Control Flow/for"
+  path           String? /// Hierarchical path if applicable
+
+  /// ── Why does this work item exist? ──
+  reason WorkItemReason @default(INITIAL_PLAN)
+
+  /// ── Deduplication decision ──
+  /// Computed BEFORE any API call. The pipeline checks the database
+  /// and the reuse map to decide if this item needs generation at all.
+  deduplicationAction DeduplicationAction @default(NONE) @map("dedup_action")
+  deduplicationSource String?             @map("dedup_source") /// ID of reused entity
+  deduplicationNotes  String?             @map("dedup_notes")
+
+  /// ── Model routing ──
+  modelTier     ModelTier @default(MID) @map("model_tier")
+  assignedModel String?   @map("assigned_model") /// Actual model used
+
+  /// ── The prompt ──
+  /// Complete, self-contained prompt context. Built by the PlanningEngine
+  /// at plan creation time, NOT at execution time.
+  promptTemplate String? @map("prompt_template") /// Template ID
+  promptContext  Json    @default("{}") @map("prompt_context")
+
+  /// ── Execution tracking ──
+  attemptCount Int @default(0) @map("attempt_count")
+  maxAttempts  Int @default(3) @map("max_attempts")
+
+  /// ── Response data ──
+  rawResponse   String? @map("raw_response") /// Raw API response text
+  parsedData    Json?   @map("parsed_data") /// Successfully parsed JSON
+  parseStrategy String? @map("parse_strategy") /// Which parser strategy worked
+  parseErrors   Json    @default("[]") @map("parse_errors") /// History of parse failures
+
+  /// ── Validation ──
+  validationResult String? @map("validation_result") /// "PASSED"|"FAILED"|"NEEDS_REVIEW"
+  validationNotes  String? @map("validation_notes")
+  validatorModel   String? @map("validator_model")
+
+  /// ── Cost ──
+  inputTokens  Int?   @map("input_tokens")
+  outputTokens Int?   @map("output_tokens")
+  costUsd      Float? @map("cost_usd")
+
+  /// ── Timing ──
+  queuedAt    DateTime? @map("queued_at")
+  startedAt   DateTime? @map("started_at")
+  completedAt DateTime? @map("completed_at")
+  nextRetryAt DateTime? @map("next_retry_at")
+  lastError   String?   @map("last_error")
+
+  /// ── Ordering ──
+  /// Within a phase, items are processed in this order.
+  /// Lower = processed first. Computed from dependency depth + priority.
+  executionOrder Int @default(0) @map("execution_order")
+
+  /// ── Batch grouping ──
+  /// Related items can be batched into a single API call.
+  /// e.g., "Generate 5 sibling entries in one prompt"
+  batchId    String? @map("batch_id")
+  batchIndex Int?    @map("batch_index") /// Position within batch
+
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // ── Relations ──
+  plan         MasterPlan           @relation(fields: [planId], references: [id])
+  dependencies WorkItemDependency[] @relation("ItemDependents")
+  dependents   WorkItemDependency[] @relation("ItemDependencies")
+
+  @@index([planId, phase, status])
+  @@index([status, executionOrder])
+  @@index([planId, status])
+  @@index([batchId])
+  @@index([phase, status, executionOrder])
+  @@index([nextRetryAt])
+  @@map("work_items")
+}
+
+/// WorkItemDependency — DAG edges between work items.
+///
+/// Unlike the generic RequestDependency, these are ALWAYS within the
+/// context of a MasterPlan, making dependency resolution much faster.
+model WorkItemDependency {
+  id           BigInt  @id @default(autoincrement())
+  dependentId  String  @map("dependent_id") /// The item that is WAITING
+  dependencyId String  @map("dependency_id") /// The item that must COMPLETE first
+  isHard       Boolean @default(true) @map("is_hard")
+  reason       String?
+
+  dependent  WorkItem @relation("ItemDependents", fields: [dependentId], references: [id])
+  dependency WorkItem @relation("ItemDependencies", fields: [dependencyId], references: [id])
+
+  @@unique([dependentId, dependencyId])
+  @@index([dependencyId])
+  @@map("work_item_dependencies")
+}
+
+// ─── Checkpoint & Resume ─────────────────────────────────────────────────────
+
+/// GenerationCheckpoint — Crash-safe progress tracking.
+///
+/// Every completed API call is checkpointed. If the process dies at
+/// work item #1,842, restart picks up at #1,843.
+model GenerationCheckpoint {
+  id          BigInt        @id @default(autoincrement())
+  planId      String        @map("plan_id")
+  workItemId  String        @map("work_item_id")
+  phase       PipelinePhase
+  completedAt DateTime      @default(now()) @map("completed_at")
+
+  /// Snapshot of what was produced
+  resultSummary String? @map("result_summary") /// Brief: "Generated 3 entries, 2 examples"
+
+  @@index([planId, phase])
+  @@index([planId, completedAt])
+  @@map("generation_checkpoints")
+}
+
+// ─── Wave Configuration ──────────────────────────────────────────────────────
+
+/// WaveConfig — Defines the generation wave order and cross-target dependencies.
+///
+/// ~10 rows. Configured once, drives the entire rollout strategy.
+model WaveConfig {
+  wave        Int      @id /// 1, 2, 3, 4
+  name        String /// "Foundation", "Related Formats", "Complex Assemblies", "Tools"
+  description String?
+  targetIds   String[] @map("target_ids") /// ["python", "json", "png"]
+
+  /// Expected reuse from previous waves
+  expectedReusePercent Float @default(0.0) @map("expected_reuse_percent")
+
+  /// Prerequisites: which waves must complete first
+  prerequisiteWaves Int[] @map("prerequisite_waves") /// [1] for wave 2, [1,2] for wave 3
+
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("wave_configs")
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
+// LAYER 9: PETITIONS — User-driven knowledge requests
+//
+// Users declare what they need the database to know. The system decomposes
+// the request, identifies gaps, and generates exactly the missing knowledge.
+// ════════════════════════════════════════════════════════════════════════════════
+
+/// Status of a user petition
+enum PetitionStatus {
+  SUBMITTED // User submitted, awaiting decomposition
+  DECOMPOSING // AI is analyzing what knowledge is needed
+  ASSESSING // Cartographer is checking what already exists
+  PLANNING // Strategist is building the generation plan
+  GENERATING // Executor is filling gaps
+  SYNTHESIZING // Connecting generated knowledge via relations
+  FULFILLED // All required knowledge exists in the database
+  PARTIALLY_FULFILLED // Some knowledge generated, but gaps remain (budget/complexity)
+  REJECTED // Out of scope or not actionable
+  CANCELLED // User cancelled
+}
+
+/// How specific is the user's request?
+enum PetitionScope {
+  FEATURE_REPLICATION // "Replicate Photoshop's gradient tool"
+  HOW_TO // "How do I create a bar chart in SVG?"
+  CONCEPT_DEEP_DIVE // "I need to understand DEFLATE compression fully"
+  CROSS_TARGET_COMPARE // "Compare async patterns across Python, Rust, and Go"
+  BUILD_GUIDE // "Architecture for a PDF report generator"
+  EXPLORATION // "What can I do with WebGL shaders?"
+}
+
+/// Priority level for petition processing
+enum PetitionPriority {
+  CRITICAL // Blocking user work, needs immediate attention
+  HIGH // Important, should be processed soon
+  NORMAL // Standard priority
+  LOW // Nice to have, process when idle
+  BACKGROUND // Fill during off-peak, no urgency
+}
+
+/// A user's request for the database to learn something specific.
+///
+/// This is NOT a question — it's a declaration of intent. The user is saying
+/// "I need the database to contain knowledge about X so that future queries
+/// about X can be answered from structured data."
+model Petition {
+  id String @id @default(cuid())
+
+  /// ── User intent (the raw request) ──
+  userQuery String @map("user_query")
+  /// The user's natural language request, exactly as submitted.
+  /// "I want to replicate the gradient tool from Photoshop"
+  /// "How do I programmatically create a PowerPoint with charts?"
+  /// "Teach the database everything about Rust's borrow checker"
+
+  /// Structured version of user intent (filled by decomposer)
+  title       String? /// Short title: "Photoshop Gradient Tool Replication"
+  scope       PetitionScope? /// Classified scope
+  description String? /// AI-expanded description of what's needed
+
+  /// ── User metadata ──
+  userId        String?  @map("user_id") /// Who submitted this
+  userContext   String?  @map("user_context") /// Optional: what they're building
+  targetOutputs String[] @map("target_outputs") /// What they want to produce
+  /// e.g., ["python_library", "svg_output", "canvas_rendering"]
+
+  priority PetitionPriority @default(NORMAL)
+
+  /// ── Decomposition results (filled by the Decomposer) ──
+  /// What topics/knowledge does this petition require?
+  knowledgeRequirements Json @default("[]") @map("knowledge_requirements")
+  /// [{
+  ///   id: "kr_001",
+  ///   category: "algorithm",
+  ///   topic: "Linear gradient interpolation in RGB/HSL color spaces",
+  ///   targetId: null,                    // null = target-agnostic
+  ///   entityType: "algorithm",
+  ///   importance: "critical",            // critical | important | nice_to_have
+  ///   searchTerms: ["gradient", "interpolation", "color space", "linear blend"],
+  ///   relatedConceptIds: ["concept.color.interpolation", "concept.rendering.gradient"],
+  /// }, {
+  ///   id: "kr_002",
+  ///   category: "implementation",
+  ///   topic: "PSD gradient overlay layer storage format",
+  ///   targetId: "psd",
+  ///   entityType: "atom",
+  ///   importance: "important",
+  ///   searchTerms: ["psd", "gradient", "layer", "overlay"],
+  /// }, ...]
+
+  /// ── Assessment results (filled by the Cartographer) ──
+  gapAssessment Json @default("{}") @map("gap_assessment")
+  /// {
+  ///   totalRequirements: 14,
+  ///   alreadyExists: 6,
+  ///   partiallyExists: 3,
+  ///   missing: 5,
+  ///   existingEntityIds: ["algo.img.gradient.linear", "entry.css.gradient", ...],
+  ///   gaps: [{
+  ///     requirementId: "kr_003",
+  ///     topic: "Radial gradient with focal point offset",
+  ///     gapType: "missing",            // "missing" | "incomplete" | "stale"
+  ///     estimatedEffort: { apiCalls: 3, tokens: 12000, costUsd: 0.08 }
+  ///   }, ...]
+  /// }
+
+  /// ── Plan reference ──
+  generationPlanId String? @map("generation_plan_id")
+
+  /// ── Lifecycle ──
+  status        PetitionStatus @default(SUBMITTED)
+  statusMessage String?        @map("status_message") /// Human-readable status update
+  progress      Float          @default(0) /// 0.0 to 1.0
+
+  /// ── Results ──
+  /// IDs of all entities that were generated or linked to fulfill this petition
+  fulfilledByEntities String[] @map("fulfilled_by_entities")
+  /// The final synthesis: a summary of what the database now knows
+  fulfillmentSummary  String?  @map("fulfillment_summary")
+
+  /// ── Cost tracking ──
+  estimatedCostUsd Float? @map("estimated_cost_usd")
+  actualCostUsd    Float  @default(0) @map("actual_cost_usd")
+  totalTokens      Int    @default(0) @map("total_tokens")
+  apiCalls         Int    @default(0) @map("api_calls")
+
+  /// ── Budget limits (user can cap their petition) ──
+  maxCostUsd  Float? @map("max_cost_usd") /// "Don't spend more than $5 on this"
+  maxApiCalls Int?   @map("max_api_calls") /// "No more than 50 API calls"
+
+  /// ── Timestamps ──
+  submittedAt         DateTime  @default(now()) @map("submitted_at")
+  decomposedAt        DateTime? @map("decomposed_at")
+  assessedAt          DateTime? @map("assessed_at")
+  planCreatedAt       DateTime? @map("plan_created_at")
+  generationStartedAt DateTime? @map("generation_started_at")
+  fulfilledAt         DateTime? @map("fulfilled_at")
+
+  /// ── User interaction ──
+  userFeedback Json @default("[]") @map("user_feedback")
+  /// [{timestamp, message, type: "clarification"|"approval"|"rejection"|"refinement"}]
+
+  metadata Json @default("{}")
+
+  // ── Relations ──
+  masterPlan MasterPlan?      @relation(fields: [generationPlanId], references: [id])
+  threads    PetitionThread[]
+  votes      PetitionVote[]
+
+  @@index([status, priority])
+  @@index([userId])
+  @@index([status, submittedAt])
+  @@map("petitions")
+}
+
+/// Conversation thread on a petition — user ↔ system dialogue.
+///
+/// The system may need to ask clarifying questions.
+/// The user may want to refine or expand their request.
+/// This creates a structured conversation that feeds back into the pipeline.
+model PetitionThread {
+  id         String @id @default(cuid())
+  petitionId String @map("petition_id")
+
+  /// Who is speaking?
+  role String /// "user" | "system" | "decomposer" | "strategist"
+
+  /// What are they saying?
+  messageType String @map("message_type")
+  /// "clarification_request"    — system needs more info
+  /// "clarification_response"   — user provides more info
+  /// "scope_proposal"           — system proposes what it will generate
+  /// "scope_approval"           — user approves the proposal
+  /// "scope_refinement"         — user adjusts the proposal
+  /// "progress_update"          — system reports progress
+  /// "cost_warning"             — approaching budget limit
+  /// "completion_report"        — system reports what was generated
+  /// "feedback"                 — user rates the results
+
+  content String /// The message content (markdown)
+
+  /// Structured data attached to the message
+  data Json @default("{}")
+  /// For clarification_request: { questions: ["Which color spaces?", "Raster or vector?"] }
+  /// For scope_proposal: { requirements: [...], estimatedCost: 2.40, estimatedTime: "8 min" }
+  /// For progress_update: { step: 23, total: 47, currentPhase: "GENERATE" }
+  /// For completion_report: { entitiesCreated: 12, entitiesLinked: 8, totalCost: 1.80 }
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // ── Relations ──
+  petition Petition @relation(fields: [petitionId], references: [id], onDelete: Cascade)
+
+  @@index([petitionId, createdAt])
+  @@map("petition_threads")
+}
+
+/// Votes on petitions — community prioritization.
+/// When multiple users want the same knowledge, votes push it up the queue.
+model PetitionVote {
+  id         BigInt @id @default(autoincrement())
+  petitionId String @map("petition_id")
+  userId     String @map("user_id")
+  weight     Int    @default(1) /// 1 = upvote, -1 = not useful
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // ── Relations ──
+  petition Petition @relation(fields: [petitionId], references: [id], onDelete: Cascade)
+
+  @@unique([petitionId, userId])
+  @@index([petitionId])
+  @@map("petition_votes")
+}
+
+/// Template knowledge requirements for common petition types.
+/// Pre-computed decompositions so the system doesn't need an LLM call
+/// for well-known requests.
+model PetitionTemplate {
+  id String @id @default(cuid())
+
+  /// Matching
+  name          String /// "Photoshop Tool Replication"
+  matchPatterns String[] @map("match_patterns")
+  /// ["replicate * tool", "photoshop * tool", "implement * from photoshop"]
+  /// Used for fuzzy matching against user queries
+
+  scope PetitionScope
+
+  /// Pre-computed decomposition
+  knowledgeRequirements Json @map("knowledge_requirements")
+  /// Same structure as Petition.knowledgeRequirements
+
+  /// Typical parameters
+  estimatedCostUsd     Float @map("estimated_cost_usd")
+  estimatedApiCalls    Int   @map("estimated_api_calls")
+  estimatedTimeMinutes Float @map("estimated_time_minutes")
+
+  /// Quality
+  usageCount      Int    @default(0) @map("usage_count")
+  avgSatisfaction Float? @map("avg_satisfaction") /// 0-5 rating
+
+  isActive Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("petition_templates")
 }

@@ -1,0 +1,32 @@
+{
+  "discover_capabilities_json": {
+    "taskId": "discover_capabilities_json",
+    "phase": "LAYER_1",
+    "status": "failed",
+    "startedAt": "2026-03-13T06:08:25.913Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T06:09:01.332Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_coordinate_system_json": {
+    "taskId": "extract_coordinate_system_json",
+    "phase": "LAYER_1",
+    "status": "failed",
+    "startedAt": "2026-03-13T06:09:02.841Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T06:09:37.576Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_minimal_file_json": {
+    "taskId": "extract_minimal_file_json",
+    "phase": "LAYER_1",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:09:39.137Z",
+    "tokenCost": 1000,
+    "apiCostUsd": 0.05,
+    "completedAt": "2026-03-13T06:10:22.552Z",
+    "resultNodeId": "atom_json_minimal"
+  }
+}

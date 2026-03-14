@@ -1,0 +1,136 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1773366873545,
+  "projectRoot": "C:\\0-BlackBoxProject-0\\magb",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {
+      "prepare": "husky",
+      "commit": "cz",
+      "release": "release-it"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "docs"
+    ],
+    "gitBranches": {
+      "defaultBranch": "master",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 3,
+      "lastAccessed": 1773366873344,
+      "keyFiles": [
+        "faq.md",
+        "glossary.md",
+        "README.md"
+      ]
+    },
+    "prisma": {
+      "path": "prisma",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1773366873347,
+      "keyFiles": [
+        "schema.prisma"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": ".env",
+      "accessCount": 2,
+      "lastAccessed": 1773370268636,
+      "type": "file"
+    },
+    {
+      "path": "start-magb-proxy.sh",
+      "accessCount": 2,
+      "lastAccessed": 1773370523162,
+      "type": "file"
+    },
+    {
+      "path": "docs\\README.md",
+      "accessCount": 2,
+      "lastAccessed": 1773370902949,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 2,
+      "lastAccessed": 1773371700960,
+      "type": "file"
+    },
+    {
+      "path": ".seedocs\\dev\\magb-cloudsql-setup-agent-prompt.md",
+      "accessCount": 1,
+      "lastAccessed": 1773368722261,
+      "type": "file"
+    },
+    {
+      "path": "prisma\\schema.prisma",
+      "accessCount": 1,
+      "lastAccessed": 1773369453300,
+      "type": "file"
+    },
+    {
+      "path": "docs\\guides\\getting-started.md",
+      "accessCount": 1,
+      "lastAccessed": 1773370735272,
+      "type": "file"
+    },
+    {
+      "path": "docs\\guides\\cloud-sql-setup.md",
+      "accessCount": 1,
+      "lastAccessed": 1773370886198,
+      "type": "file"
+    },
+    {
+      "path": "docs\\guides\\README.md",
+      "accessCount": 1,
+      "lastAccessed": 1773370917201,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

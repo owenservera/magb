@@ -340,6 +340,81 @@ For those who want to dive deeper, magB's architecture is organized into several
 
 ---
 
+## 🔬 POC Infrastructure
+
+### Current POC Database Configuration
+
+The magB POC uses Google Cloud SQL for PostgreSQL with the following configuration:
+
+| Setting | Value | Rationale |
+|---------|-------|-----------|
+| **Database Version** | PostgreSQL 15 | Required for `pgvector` stability and performance |
+| **Instance Tier** | `db-f1-micro` | Shared vCPU, 614MB RAM — sufficient for initial POC with 2-3 targets |
+| **Region** | `us-central1` | Cost-effective region with good latency for most US developers |
+| **Storage** | 10GB SSD with auto-increase | Starts small, scales automatically as knowledge base grows |
+| **Backup** | Daily at 04:00 UTC | Automated backups for data safety |
+| **Extensions** | `pgvector` v0.8.1, `pg_trgm` v1.6 | Vector embeddings for semantic search, fuzzy text search |
+| **Connection** | Cloud SQL Auth Proxy (port 5433) | Secure, authenticated connections without public IP exposure |
+
+### Estimated Monthly Costs (POC Configuration)
+
+Based on Google Cloud SQL pricing (as of 2025):
+
+| Resource | Cost |
+|----------|------|
+| **db-f1-micro** | ~$14-15/month |
+| **10GB SSD Storage** | ~$0.17/month |
+| **Network Egress** | ~$1-3/month (depends on usage) |
+| **Total** | **~$15-20/month** |
+
+> 💡 **Free Trial:** New Google Cloud accounts receive a $300 credit, which covers approximately 15-20 months of POC usage.
+
+### When to Scale Up
+
+The current `db-f1-micro` configuration is suitable for:
+
+- ✅ POC development and testing
+- ✅ 2-3 initial knowledge bases
+- ✅ Single developer workflow
+- ✅ Feature development and validation
+
+You should consider scaling up when:
+
+- 🔄 **Generating 5+ knowledge bases** → Upgrade to `db-g1-small`
+- 👥 **Multiple concurrent developers** → Upgrade to `db-g1-small` or `db-custom`
+- 📊 **Heavy query workloads** → Increase instance tier and add read replicas
+- 🌍 **Global users** → Multi-region deployment with read replicas
+
+### Setup Instructions
+
+Complete setup guide available at:
+- [Cloud SQL Setup Guide](docs/guides/cloud-sql-setup.md)
+
+Quick commands:
+
+```bash
+# Start the Cloud SQL Auth Proxy
+./start-magb-proxy.sh
+
+# Run Prisma Studio to explore the database
+npx prisma studio
+
+# Run migrations (after schema changes)
+npx prisma migrate dev --name your_migration_name
+```
+
+### Production Deployment Considerations
+
+For production deployment, consider:
+
+1. **Higher Availability** → Enable High Availability (regional replicas)
+2. **Read Replicas** → Offload read queries to dedicated replicas
+3. **Connection Pooling** → Use PgBouncer for high connection counts
+4. **Monitoring** → Cloud SQL monitoring + observability dashboards
+5. **Backup Strategy** → Point-in-time recovery + cross-region backups
+
+---
+
 ## 📄 License
 
 magB is open source software, released under the [Apache License 2.0](LICENSE).

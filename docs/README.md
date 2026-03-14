@@ -11,6 +11,7 @@ New to magB? Start here:
 | Guide | For | Time |
 |-------|-----|------|
 | **[Getting Started](guides/getting-started.md)** | Everyone | 10 min |
+| **[Cloud SQL Setup](guides/cloud-sql-setup.md)** | Developers | 30 min |
 | **[Your First Knowledge Base](guides/your-first-knowledge-base.md)** | Developers | 20 min |
 
 ---

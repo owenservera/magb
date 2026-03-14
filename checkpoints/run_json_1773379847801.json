@@ -1,0 +1,20 @@
+{
+  "discover_capabilities_json": {
+    "taskId": "discover_capabilities_json",
+    "phase": "LAYER_1",
+    "status": "failed",
+    "startedAt": "2026-03-13T05:30:47.954Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T05:31:44.638Z",
+    "error": "\nInvalid `this.db.db.target.upsert()` invocation in\nC:\\0-BlackBoxProject-0\\magb\\src\\engine\\generation\\executor.ts:133:29\n\n  130 \n  131 private async storeResult(target: string, task: GenerationTask, data: any): Promise<string> {\n  132   // Determine if target exists, if not create\n→ 133   await this.db.db.target.upsert(\nAuthentication failed against the database server, the provided database credentials for `johndoe` are not valid"
+  },
+  "extract_coordinate_system_json": {
+    "taskId": "extract_coordinate_system_json",
+    "phase": "LAYER_1",
+    "status": "running",
+    "startedAt": "2026-03-13T05:31:44.640Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0
+  }
+}

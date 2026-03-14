@@ -1,0 +1,292 @@
+{
+  "discover_capabilities_json": {
+    "taskId": "discover_capabilities_json",
+    "phase": "LAYER_1",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:04:28.759Z",
+    "tokenCost": 1000,
+    "apiCostUsd": 0.05,
+    "completedAt": "2026-03-13T06:05:37.686Z",
+    "resultNodeId": "target_json"
+  },
+  "extract_coordinate_system_json": {
+    "taskId": "extract_coordinate_system_json",
+    "phase": "LAYER_1",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:05:37.688Z",
+    "tokenCost": 1000,
+    "apiCostUsd": 0.05,
+    "completedAt": "2026-03-13T06:05:50.873Z",
+    "resultNodeId": "atom_json_coords"
+  },
+  "extract_minimal_file_json": {
+    "taskId": "extract_minimal_file_json",
+    "phase": "LAYER_1",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:05:50.875Z",
+    "tokenCost": 1000,
+    "apiCostUsd": 0.05,
+    "completedAt": "2026-03-13T06:06:31.496Z",
+    "resultNodeId": "atom_json_minimal"
+  },
+  "extract_template_json_represent_object": {
+    "taskId": "extract_template_json_represent_object",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:06:31.498Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:08:25.518Z",
+    "resultNodeId": "atom_json_represent_object_template"
+  },
+  "extract_algorithm_json_represent_object": {
+    "taskId": "extract_algorithm_json_represent_object",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:08:25.519Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:09:54.507Z",
+    "resultNodeId": "algo_json_represent_object"
+  },
+  "extract_template_json_represent_array": {
+    "taskId": "extract_template_json_represent_array",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T06:09:54.508Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T06:10:13.527Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_algorithm_json_represent_array": {
+    "taskId": "extract_algorithm_json_represent_array",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:10:13.528Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:11:25.477Z",
+    "resultNodeId": "algo_json_represent_array"
+  },
+  "extract_template_json_store_primitives": {
+    "taskId": "extract_template_json_store_primitives",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:11:25.479Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:14:34.989Z",
+    "resultNodeId": "atom_json_store_primitives_template"
+  },
+  "extract_algorithm_json_store_primitives": {
+    "taskId": "extract_algorithm_json_store_primitives",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:14:34.995Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:16:39.239Z",
+    "resultNodeId": "no_algorithm"
+  },
+  "extract_template_json_create_nested_hierarchy": {
+    "taskId": "extract_template_json_create_nested_hierarchy",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:16:39.240Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:17:16.687Z",
+    "resultNodeId": "atom_json_create_nested_hierarchy_template"
+  },
+  "extract_algorithm_json_create_nested_hierarchy": {
+    "taskId": "extract_algorithm_json_create_nested_hierarchy",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:17:16.689Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:18:50.569Z",
+    "resultNodeId": "algo_json_create_nested_hierarchy"
+  },
+  "extract_template_json_serialize": {
+    "taskId": "extract_template_json_serialize",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:18:50.570Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:20:43.881Z",
+    "resultNodeId": "atom_json_serialize_template"
+  },
+  "extract_algorithm_json_serialize": {
+    "taskId": "extract_algorithm_json_serialize",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:20:43.884Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:21:49.451Z",
+    "resultNodeId": "no_algorithm"
+  },
+  "extract_template_json_deserialize": {
+    "taskId": "extract_template_json_deserialize",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:21:49.453Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:22:39.783Z",
+    "resultNodeId": "atom_json_deserialize_template"
+  },
+  "extract_algorithm_json_deserialize": {
+    "taskId": "extract_algorithm_json_deserialize",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:22:39.785Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:23:31.259Z",
+    "resultNodeId": "algo_json_deserialize"
+  },
+  "extract_template_json_define_config": {
+    "taskId": "extract_template_json_define_config",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:23:31.261Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:24:39.934Z",
+    "resultNodeId": "atom_json_define_config_template"
+  },
+  "extract_algorithm_json_define_config": {
+    "taskId": "extract_algorithm_json_define_config",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:24:39.936Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:25:01.526Z",
+    "resultNodeId": "algo_json_define_config"
+  },
+  "extract_template_json_facilitate_api_transfer": {
+    "taskId": "extract_template_json_facilitate_api_transfer",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:25:01.528Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:25:50.709Z",
+    "resultNodeId": "atom_json_facilitate_api_transfer_template"
+  },
+  "extract_algorithm_json_facilitate_api_transfer": {
+    "taskId": "extract_algorithm_json_facilitate_api_transfer",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:25:50.720Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:26:22.429Z",
+    "resultNodeId": "algo_json_facilitate_api_transfer"
+  },
+  "extract_template_json_support_document_stores": {
+    "taskId": "extract_template_json_support_document_stores",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:26:22.431Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:27:44.692Z",
+    "resultNodeId": "atom_json_support_document_stores_template"
+  },
+  "extract_algorithm_json_support_document_stores": {
+    "taskId": "extract_algorithm_json_support_document_stores",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:27:44.693Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:32:28.201Z",
+    "resultNodeId": "algo_json_support_document_stores"
+  },
+  "extract_template_json_enable_cross_platform": {
+    "taskId": "extract_template_json_enable_cross_platform",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:32:28.227Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:32:54.837Z",
+    "resultNodeId": "atom_json_enable_cross_platform_template"
+  },
+  "extract_algorithm_json_enable_cross_platform": {
+    "taskId": "extract_algorithm_json_enable_cross_platform",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:32:54.841Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:33:43.421Z",
+    "resultNodeId": "no_algorithm"
+  },
+  "extract_template_json_provide_text_format": {
+    "taskId": "extract_template_json_provide_text_format",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:33:43.423Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:34:23.458Z",
+    "resultNodeId": "atom_json_provide_text_format_template"
+  },
+  "extract_algorithm_json_provide_text_format": {
+    "taskId": "extract_algorithm_json_provide_text_format",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:34:23.463Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:35:04.970Z",
+    "resultNodeId": "algo_json_provide_text_format"
+  },
+  "extract_template_json_allow_mixed_types": {
+    "taskId": "extract_template_json_allow_mixed_types",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:35:04.972Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:36:13.353Z",
+    "resultNodeId": "atom_json_allow_mixed_types_template"
+  },
+  "extract_algorithm_json_allow_mixed_types": {
+    "taskId": "extract_algorithm_json_allow_mixed_types",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:36:13.355Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:37:09.511Z",
+    "resultNodeId": "no_algorithm"
+  },
+  "extract_template_json_enable_schema_validation": {
+    "taskId": "extract_template_json_enable_schema_validation",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:37:09.513Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:38:20.333Z",
+    "resultNodeId": "atom_json_enable_schema_validation_template"
+  },
+  "extract_algorithm_json_enable_schema_validation": {
+    "taskId": "extract_algorithm_json_enable_schema_validation",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:38:20.334Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:38:59.968Z",
+    "resultNodeId": "no_algorithm"
+  }
+}

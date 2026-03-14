@@ -1,0 +1,612 @@
+{
+  "discover_capabilities_json": {
+    "taskId": "discover_capabilities_json",
+    "phase": "LAYER_1",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:42:14.475Z",
+    "tokenCost": 1000,
+    "apiCostUsd": 0.05,
+    "completedAt": "2026-03-13T06:43:59.677Z",
+    "resultNodeId": "target_json"
+  },
+  "extract_coordinate_system_json": {
+    "taskId": "extract_coordinate_system_json",
+    "phase": "LAYER_1",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:44:04.717Z",
+    "tokenCost": 1000,
+    "apiCostUsd": 0.05,
+    "completedAt": "2026-03-13T06:44:44.019Z",
+    "resultNodeId": "atom_json_coords"
+  },
+  "extract_minimal_file_json": {
+    "taskId": "extract_minimal_file_json",
+    "phase": "LAYER_1",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:44:49.057Z",
+    "tokenCost": 1000,
+    "apiCostUsd": 0.05,
+    "completedAt": "2026-03-13T06:47:06.958Z",
+    "resultNodeId": "atom_json_minimal"
+  },
+  "extract_template_json_store_primitive_values": {
+    "taskId": "extract_template_json_store_primitive_values",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:47:12.041Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:48:08.084Z",
+    "resultNodeId": "atom_json_store_primitive_values_template"
+  },
+  "extract_algorithm_json_store_primitive_values": {
+    "taskId": "extract_algorithm_json_store_primitive_values",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:48:13.098Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:49:06.838Z",
+    "resultNodeId": "algo_json_store_primitive_values"
+  },
+  "extract_template_json_store_key_value_pairs": {
+    "taskId": "extract_template_json_store_key_value_pairs",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:49:11.861Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:49:44.206Z",
+    "resultNodeId": "atom_json_store_key_value_pairs_template"
+  },
+  "extract_algorithm_json_store_key_value_pairs": {
+    "taskId": "extract_algorithm_json_store_key_value_pairs",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:49:49.204Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:50:43.577Z",
+    "resultNodeId": "no_algorithm"
+  },
+  "extract_template_json_store_arrays": {
+    "taskId": "extract_template_json_store_arrays",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:50:48.592Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:52:14.980Z",
+    "resultNodeId": "atom_json_store_arrays_template"
+  },
+  "extract_algorithm_json_store_arrays": {
+    "taskId": "extract_algorithm_json_store_arrays",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:52:19.996Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:53:13.928Z",
+    "resultNodeId": "no_algorithm"
+  },
+  "extract_template_json_enable_nested_structures": {
+    "taskId": "extract_template_json_enable_nested_structures",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:53:18.932Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:54:14.328Z",
+    "resultNodeId": "atom_json_enable_nested_structures_template"
+  },
+  "extract_algorithm_json_enable_nested_structures": {
+    "taskId": "extract_algorithm_json_enable_nested_structures",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:54:19.352Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:54:26.943Z",
+    "resultNodeId": "no_algorithm"
+  },
+  "extract_template_json_parse__string": {
+    "taskId": "extract_template_json_parse__string",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:54:31.975Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:55:27.574Z",
+    "resultNodeId": "atom_json_parse__string_template"
+  },
+  "extract_algorithm_json_parse__string": {
+    "taskId": "extract_algorithm_json_parse__string",
+    "phase": "LAYER_2",
+    "status": "completed",
+    "startedAt": "2026-03-13T06:55:32.634Z",
+    "tokenCost": 2000,
+    "apiCostUsd": 0.1,
+    "completedAt": "2026-03-13T06:57:49.294Z",
+    "resultNodeId": "algo_json_parse__string"
+  },
+  "extract_template_json_serialize_to_": {
+    "taskId": "extract_template_json_serialize_to_",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T06:57:54.329Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T06:59:33.335Z",
+    "error": "\nInvalid `this.db.db.target.upsert()` invocation in\nC:\\0-BlackBoxProject-0\\magb\\src\\engine\\generation\\executor.ts:158:29\n\n  155 \n  156 private async storeResult(target: string, task: GenerationTask, data: any): Promise<string> {\n  157   // Determine if target exists, if not create\n→ 158   await this.db.db.target.upsert(\nCan't reach database server at 127.0.0.1:5433"
+  },
+  "extract_algorithm_json_serialize_to_": {
+    "taskId": "extract_algorithm_json_serialize_to_",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T06:59:33.337Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:00:14.773Z",
+    "error": "\nInvalid `this.db.db.target.upsert()` invocation in\nC:\\0-BlackBoxProject-0\\magb\\src\\engine\\generation\\executor.ts:158:29\n\n  155 \n  156 private async storeResult(target: string, task: GenerationTask, data: any): Promise<string> {\n  157   // Determine if target exists, if not create\n→ 158   await this.db.db.target.upsert(\nCan't reach database server at 127.0.0.1:5433"
+  },
+  "extract_template_json_generate_from_scratch": {
+    "taskId": "extract_template_json_generate_from_scratch",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:00:14.775Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:01:14.502Z",
+    "error": "\nInvalid `this.db.db.target.upsert()` invocation in\nC:\\0-BlackBoxProject-0\\magb\\src\\engine\\generation\\executor.ts:158:29\n\n  155 \n  156 private async storeResult(target: string, task: GenerationTask, data: any): Promise<string> {\n  157   // Determine if target exists, if not create\n→ 158   await this.db.db.target.upsert(\nCan't reach database server at 127.0.0.1:5433"
+  },
+  "extract_algorithm_json_generate_from_scratch": {
+    "taskId": "extract_algorithm_json_generate_from_scratch",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:01:14.506Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:01:44.614Z",
+    "error": "\nInvalid `this.db.db.target.upsert()` invocation in\nC:\\0-BlackBoxProject-0\\magb\\src\\engine\\generation\\executor.ts:158:29\n\n  155 \n  156 private async storeResult(target: string, task: GenerationTask, data: any): Promise<string> {\n  157   // Determine if target exists, if not create\n→ 158   await this.db.db.target.upsert(\nCan't reach database server at 127.0.0.1:5433"
+  },
+  "extract_template_json_stream_parse": {
+    "taskId": "extract_template_json_stream_parse",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:01:44.615Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:04:55.035Z",
+    "error": "\nInvalid `this.db.db.target.upsert()` invocation in\nC:\\0-BlackBoxProject-0\\magb\\src\\engine\\generation\\executor.ts:158:29\n\n  155 \n  156 private async storeResult(target: string, task: GenerationTask, data: any): Promise<string> {\n  157   // Determine if target exists, if not create\n→ 158   await this.db.db.target.upsert(\nCan't reach database server at 127.0.0.1:5433"
+  },
+  "extract_algorithm_json_stream_parse": {
+    "taskId": "extract_algorithm_json_stream_parse",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:04:55.052Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:09:52.527Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_template_json_retrieve_by_key": {
+    "taskId": "extract_template_json_retrieve_by_key",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:09:52.532Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:10:33.193Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_algorithm_json_retrieve_by_key": {
+    "taskId": "extract_algorithm_json_retrieve_by_key",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:10:33.199Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:11:12.327Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_template_json_retrieve_by_index": {
+    "taskId": "extract_template_json_retrieve_by_index",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:11:12.355Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:11:49.184Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_algorithm_json_retrieve_by_index": {
+    "taskId": "extract_algorithm_json_retrieve_by_index",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:11:49.226Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:12:29.427Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_template_json_traverse_hierarchy": {
+    "taskId": "extract_template_json_traverse_hierarchy",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:12:29.436Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:13:07.259Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_algorithm_json_traverse_hierarchy": {
+    "taskId": "extract_algorithm_json_traverse_hierarchy",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:13:07.264Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:13:44.954Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_template_json_modify_value": {
+    "taskId": "extract_template_json_modify_value",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:13:44.957Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:14:23.820Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_algorithm_json_modify_value": {
+    "taskId": "extract_algorithm_json_modify_value",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:14:23.905Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:15:02.058Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_template_json_insert_field": {
+    "taskId": "extract_template_json_insert_field",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:15:02.088Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:15:40.089Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_algorithm_json_insert_field": {
+    "taskId": "extract_algorithm_json_insert_field",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:15:40.143Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:16:16.378Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_template_json_remove_field": {
+    "taskId": "extract_template_json_remove_field",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:16:16.382Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:16:53.753Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_algorithm_json_remove_field": {
+    "taskId": "extract_algorithm_json_remove_field",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:16:53.766Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:17:30.908Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_template_json_validate_against_schema": {
+    "taskId": "extract_template_json_validate_against_schema",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:17:30.911Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:18:09.272Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_algorithm_json_validate_against_schema": {
+    "taskId": "extract_algorithm_json_validate_against_schema",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:18:09.339Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:18:46.500Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_template_json_enforce_type_contracts": {
+    "taskId": "extract_template_json_enforce_type_contracts",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:18:46.525Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:19:23.771Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_algorithm_json_enforce_type_contracts": {
+    "taskId": "extract_algorithm_json_enforce_type_contracts",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:19:23.775Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:20:04.238Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_template_json_check_required_fields": {
+    "taskId": "extract_template_json_check_required_fields",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:20:04.243Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:20:43.414Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_algorithm_json_check_required_fields": {
+    "taskId": "extract_algorithm_json_check_required_fields",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:20:43.463Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:21:22.728Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_template_json_pretty_print": {
+    "taskId": "extract_template_json_pretty_print",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:21:22.779Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:22:00.698Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_algorithm_json_pretty_print": {
+    "taskId": "extract_algorithm_json_pretty_print",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:22:00.703Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:22:38.150Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_template_json_minify": {
+    "taskId": "extract_template_json_minify",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:22:38.220Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:23:18.527Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_algorithm_json_minify": {
+    "taskId": "extract_algorithm_json_minify",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:23:18.561Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:23:55.888Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_template_json_flatten_nested_data": {
+    "taskId": "extract_template_json_flatten_nested_data",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:23:55.954Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:24:36.357Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_algorithm_json_flatten_nested_data": {
+    "taskId": "extract_algorithm_json_flatten_nested_data",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:24:36.406Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:25:15.827Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_template_json_transform_to_csv": {
+    "taskId": "extract_template_json_transform_to_csv",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:25:15.834Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:25:56.748Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_algorithm_json_transform_to_csv": {
+    "taskId": "extract_algorithm_json_transform_to_csv",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:25:56.837Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:26:38.373Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_template_json_transform_to_sql": {
+    "taskId": "extract_template_json_transform_to_sql",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:26:38.497Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:27:20.678Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_algorithm_json_transform_to_sql": {
+    "taskId": "extract_algorithm_json_transform_to_sql",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:27:20.753Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:28:01.308Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_template_json_persist_to_file": {
+    "taskId": "extract_template_json_persist_to_file",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:28:01.326Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:28:42.225Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_algorithm_json_persist_to_file": {
+    "taskId": "extract_algorithm_json_persist_to_file",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:28:42.240Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:29:19.952Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_template_json_load_from_file": {
+    "taskId": "extract_template_json_load_from_file",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:29:19.956Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:29:57.739Z",
+    "error": "Max retries exceeded"
+  },
+  "extract_algorithm_json_load_from_file": {
+    "taskId": "extract_algorithm_json_load_from_file",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:29:57.772Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:30:45.020Z",
+    "error": "\nInvalid `this.db.db.target.upsert()` invocation in\nC:\\0-BlackBoxProject-0\\magb\\src\\engine\\generation\\executor.ts:158:29\n\n  155 \n  156 private async storeResult(target: string, task: GenerationTask, data: any): Promise<string> {\n  157   // Determine if target exists, if not create\n→ 158   await this.db.db.target.upsert(\nCan't reach database server at 127.0.0.1:5433"
+  },
+  "extract_template_json_stream_read": {
+    "taskId": "extract_template_json_stream_read",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:30:45.024Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:32:00.465Z",
+    "error": "\nInvalid `this.db.db.target.upsert()` invocation in\nC:\\0-BlackBoxProject-0\\magb\\src\\engine\\generation\\executor.ts:158:29\n\n  155 \n  156 private async storeResult(target: string, task: GenerationTask, data: any): Promise<string> {\n  157   // Determine if target exists, if not create\n→ 158   await this.db.db.target.upsert(\nCan't reach database server at 127.0.0.1:5433"
+  },
+  "extract_algorithm_json_stream_read": {
+    "taskId": "extract_algorithm_json_stream_read",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:32:00.483Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:32:25.737Z",
+    "error": "Could not parse JSON from response. First 200 chars: I notice that you've provided instructions about responding with a JSON structure, but you haven't specified the \"Stream Read\" capability that I should analyze. Could you please provide the details of"
+  },
+  "extract_template_json_stream_write": {
+    "taskId": "extract_template_json_stream_write",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:32:25.777Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:33:26.462Z",
+    "error": "\nInvalid `this.db.db.target.upsert()` invocation in\nC:\\0-BlackBoxProject-0\\magb\\src\\engine\\generation\\executor.ts:158:29\n\n  155 \n  156 private async storeResult(target: string, task: GenerationTask, data: any): Promise<string> {\n  157   // Determine if target exists, if not create\n→ 158   await this.db.db.target.upsert(\nCan't reach database server at 127.0.0.1:5433"
+  },
+  "extract_algorithm_json_stream_write": {
+    "taskId": "extract_algorithm_json_stream_write",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:33:26.510Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:34:39.017Z",
+    "error": "\nInvalid `this.db.db.target.upsert()` invocation in\nC:\\0-BlackBoxProject-0\\magb\\src\\engine\\generation\\executor.ts:158:29\n\n  155 \n  156 private async storeResult(target: string, task: GenerationTask, data: any): Promise<string> {\n  157   // Determine if target exists, if not create\n→ 158   await this.db.db.target.upsert(\nCan't reach database server at 127.0.0.1:5433"
+  },
+  "extract_template_json_encode_for_url": {
+    "taskId": "extract_template_json_encode_for_url",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:34:39.037Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:35:08.534Z",
+    "error": "\nInvalid `this.db.db.target.upsert()` invocation in\nC:\\0-BlackBoxProject-0\\magb\\src\\engine\\generation\\executor.ts:158:29\n\n  155 \n  156 private async storeResult(target: string, task: GenerationTask, data: any): Promise<string> {\n  157   // Determine if target exists, if not create\n→ 158   await this.db.db.target.upsert(\nCan't reach database server at 127.0.0.1:5433"
+  },
+  "extract_algorithm_json_encode_for_url": {
+    "taskId": "extract_algorithm_json_encode_for_url",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:35:08.586Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:37:06.746Z",
+    "error": "\nInvalid `this.db.db.target.upsert()` invocation in\nC:\\0-BlackBoxProject-0\\magb\\src\\engine\\generation\\executor.ts:158:29\n\n  155 \n  156 private async storeResult(target: string, task: GenerationTask, data: any): Promise<string> {\n  157   // Determine if target exists, if not create\n→ 158   await this.db.db.target.upsert(\nCan't reach database server at 127.0.0.1:5433"
+  },
+  "extract_template_json_encode_for_headers": {
+    "taskId": "extract_template_json_encode_for_headers",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:37:06.750Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:38:09.821Z",
+    "error": "\nInvalid `this.db.db.target.upsert()` invocation in\nC:\\0-BlackBoxProject-0\\magb\\src\\engine\\generation\\executor.ts:158:29\n\n  155 \n  156 private async storeResult(target: string, task: GenerationTask, data: any): Promise<string> {\n  157   // Determine if target exists, if not create\n→ 158   await this.db.db.target.upsert(\nCan't reach database server at 127.0.0.1:5433"
+  },
+  "extract_algorithm_json_encode_for_headers": {
+    "taskId": "extract_algorithm_json_encode_for_headers",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:38:09.836Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:39:12.432Z",
+    "error": "\nInvalid `this.db.db.target.upsert()` invocation in\nC:\\0-BlackBoxProject-0\\magb\\src\\engine\\generation\\executor.ts:158:29\n\n  155 \n  156 private async storeResult(target: string, task: GenerationTask, data: any): Promise<string> {\n  157   // Determine if target exists, if not create\n→ 158   await this.db.db.target.upsert(\nCan't reach database server at 127.0.0.1:5433"
+  },
+  "extract_template_json_deserialize_strict_error_handling": {
+    "taskId": "extract_template_json_deserialize_strict_error_handling",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:39:12.446Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:40:54.973Z",
+    "error": "\nInvalid `this.db.db.target.upsert()` invocation in\nC:\\0-BlackBoxProject-0\\magb\\src\\engine\\generation\\executor.ts:158:29\n\n  155 \n  156 private async storeResult(target: string, task: GenerationTask, data: any): Promise<string> {\n  157   // Determine if target exists, if not create\n→ 158   await this.db.db.target.upsert(\nCan't reach database server at 127.0.0.1:5433"
+  },
+  "extract_algorithm_json_deserialize_strict_error_handling": {
+    "taskId": "extract_algorithm_json_deserialize_strict_error_handling",
+    "phase": "LAYER_2",
+    "status": "failed",
+    "startedAt": "2026-03-13T07:40:54.990Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T07:41:30.381Z",
+    "error": "\nInvalid `this.db.db.target.upsert()` invocation in\nC:\\0-BlackBoxProject-0\\magb\\src\\engine\\generation\\executor.ts:158:29\n\n  155 \n  156 private async storeResult(target: string, task: GenerationTask, data: any): Promise<string> {\n  157   // Determine if target exists, if not create\n→ 158   await this.db.db.target.upsert(\nCan't reach database server at 127.0.0.1:5433"
+  }
+}

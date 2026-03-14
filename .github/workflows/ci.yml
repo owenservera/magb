@@ -1,15 +1,18 @@
-name: CI
+# magB CI/CD Pipeline
+
+## Test
+name: Test
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-
+    
     steps:
     - uses: actions/checkout@v4
     
@@ -17,12 +20,41 @@ jobs:
       uses: oven-sh/setup-bun@v1
       with:
         bun-version: latest
-        
+    
     - name: Install dependencies
       run: bun install
-      
-    # - name: Run lint
-    #   run: bun run lint
-      
-    # - name: Run tests
-    #   run: bun test
+    
+    - name: Run linter
+      run: bun run lint
+    
+    - name: Run tests
+      run: bun run test
+    
+    - name: Run type check
+      run: bunx tsc --noEmit
+
+  build:
+    runs-on: ubuntu-latest
+    
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: latest
+    
+    - name: Install dependencies
+      run: bun install
+    
+    - name: Build application
+      run: bun run build
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-output
+        path: .next/
+        retention-days: 7

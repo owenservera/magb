@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gcloud version:*)",
+      "Bash(gcloud auth:*)",
+      "Bash(gcloud config:*)",
+      "Bash(gcloud billing:*)",
+      "Bash(gcloud services:*)",
+      "Bash(gcloud sql:*)",
+      "Bash(curl:*)",
+      "Bash(chmod +x:*)",
+      "Bash(ls:*)",
+      "Bash(psql:*)",
+      "Bash(__NEW_LINE_7074bf87e39f5e9f__:*)",
+      "Bash(gcloud components:*)",
+      "Bash(PGPASSWORD=\"8RBrbCbShHuEUWFeKhN8z3nGR5MzLlND\" psql:*)",
+      "Bash(npx prisma:*)",
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=yes npx prisma:*)",
+      "Bash(kill 1640:*)",
+      "Bash(py:*)",
+      "Bash(setx PATH:*)",
+      "Bash(echo:*)"
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "discover_capabilities_json": {
+    "taskId": "discover_capabilities_json",
+    "phase": "LAYER_1",
+    "status": "failed",
+    "startedAt": "2026-03-13T05:42:02.379Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T05:42:07.585Z",
+    "error": "429 Rate limit reached for requests"
+  },
+  "extract_coordinate_system_json": {
+    "taskId": "extract_coordinate_system_json",
+    "phase": "LAYER_1",
+    "status": "failed",
+    "startedAt": "2026-03-13T05:42:07.586Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T05:42:12.122Z",
+    "error": "429 Rate limit reached for requests"
+  },
+  "extract_minimal_file_json": {
+    "taskId": "extract_minimal_file_json",
+    "phase": "LAYER_1",
+    "status": "failed",
+    "startedAt": "2026-03-13T05:42:12.123Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0,
+    "completedAt": "2026-03-13T05:42:17.023Z",
+    "error": "429 Rate limit reached for requests"
+  }
+}

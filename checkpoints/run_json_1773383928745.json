@@ -1,0 +1,10 @@
+{
+  "discover_capabilities_json": {
+    "taskId": "discover_capabilities_json",
+    "phase": "LAYER_1",
+    "status": "running",
+    "startedAt": "2026-03-13T06:38:51.103Z",
+    "tokenCost": 0,
+    "apiCostUsd": 0
+  }
+}
